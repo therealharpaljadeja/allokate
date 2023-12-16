@@ -1,21 +1,30 @@
 "use client";
 
 import "@rainbow-me/rainbowkit/styles.css";
-import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
+import {
+    RainbowKitProvider,
+    connectorsForWallets,
+} from "@rainbow-me/rainbowkit";
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
 import { arbitrum, arbitrumSepolia } from "viem/chains";
 import { publicProvider } from "wagmi/providers/public";
+import CustomConnectButton from "./CustomConnectButton";
+import Title from "./Title";
+import Link from "next/link";
+import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
+import UserNavMenu from "./UserNavMenu";
 
 const { chains, publicClient } = configureChains(
     [arbitrum, arbitrumSepolia],
     [publicProvider()]
 );
 
-const { connectors } = getDefaultWallets({
-    appName: "My RainbowKit App",
-    projectId: "YOUR_PROJECT_ID",
-    chains,
-});
+const connectors = connectorsForWallets([
+    {
+        groupName: "Supported",
+        wallets: [metaMaskWallet({ chains, projectId: "" })],
+    },
+]);
 
 const wagmiConfig = createConfig({
     autoConnect: true,
@@ -30,7 +39,24 @@ export default function RootClientComponent({
 }) {
     return (
         <WagmiConfig config={wagmiConfig}>
-            <RainbowKitProvider chains={chains}>{children}</RainbowKitProvider>
+            <RainbowKitProvider chains={chains}>
+                <main className="flex min-h-screen min-w-[1280px] space-y-[40px] flex-col items-center px-[60px] py-[80px] max-w-[1280px]">
+                    <div className="flex w-[100%] justify-between items-center">
+                        <div>
+                            <Link href={"/"}>
+                                <Title className="text-[28px] italic">
+                                    AlloKate
+                                </Title>
+                            </Link>
+                        </div>
+                        <div className="flex space-x-8 items-center">
+                            <UserNavMenu />
+                            <CustomConnectButton />
+                        </div>
+                    </div>
+                    {children}
+                </main>
+            </RainbowKitProvider>
         </WagmiConfig>
     );
 }
