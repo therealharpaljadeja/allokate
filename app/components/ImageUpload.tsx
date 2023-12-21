@@ -7,7 +7,10 @@ import CropModal from "./CropModal";
 
 export const aspectRatio = 7 / 2;
 
-export default function ImageUpload() {
+export default function ImageUpload(props: {
+    setBase64Image: (base64Image: string) => void;
+    previewImage?: string;
+}) {
     const [imageName, setImageName] = useState("");
     const [imageFile, setImageFile] = useState(null);
     const [openCropModal, setOpenCropModal] = useState(false);
@@ -34,11 +37,11 @@ export default function ImageUpload() {
     const onCancel = () => {
         setImageFile(null);
         setImageName("");
-        // props.setBase64Image("");
+        props.setBase64Image("");
     };
 
     const onComplete = (base64Image: string) => {
-        // props.setBase64Image(base64Image);
+        props.setBase64Image(base64Image);
         setPreview(base64Image);
     };
 
@@ -51,22 +54,22 @@ export default function ImageUpload() {
                 Banner Image
             </label>
             <div className="mt-2 flex flex-col items-center justify-center border border-dashed border-color-300 px-6 py-10">
-                {/* {!(preview !== "" || props.previewImage) && ( */}
-                <PhotoIcon
-                    className="mx-auto h-12 w-12 text-gray-300"
-                    aria-hidden="true"
-                />
-                {/* )} */}
+                {!(preview !== "" || props.previewImage) && (
+                    <PhotoIcon
+                        className="mx-auto h-12 w-12 text-gray-300"
+                        aria-hidden="true"
+                    />
+                )}
 
-                {/* {(preview !== "" || props.previewImage) && ( */}
-                <Image
-                    className="mx-auto"
-                    width={300}
-                    height={100}
-                    src={""}
-                    alt="preview"
-                />
-                {/* )} */}
+                {(preview !== "" || props.previewImage) && (
+                    <Image
+                        className="mx-auto"
+                        width={300}
+                        height={100}
+                        src={preview}
+                        alt="preview"
+                    />
+                )}
                 <div className="mt-4 text-sm leading-6 text-gray-600">
                     <label
                         htmlFor="imageUrl"

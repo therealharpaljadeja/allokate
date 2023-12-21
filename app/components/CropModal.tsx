@@ -179,14 +179,6 @@ export default function CropModal(props: {
                                         >
                                             Cancel
                                         </Button>
-                                        {/* <button
-                                            type="button"
-                                            className="bg-color-700 hover:bg-red-500 text-sm font-semibold leading-6 text-white rounded-md px-3 py-2"
-                                            onClick={handleClose}
-                                        >
-                                            Cancel
-                                        </button> */}
-
                                         <Button
                                             className="!text-[14px] outline-none px-[8px] py-[5px]"
                                             disabled={!completedCrop}

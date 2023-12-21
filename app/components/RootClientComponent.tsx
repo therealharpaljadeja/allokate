@@ -6,16 +6,18 @@ import {
     connectorsForWallets,
 } from "@rainbow-me/rainbowkit";
 import { WagmiConfig, configureChains, createConfig } from "wagmi";
-import { arbitrum, arbitrumSepolia } from "viem/chains";
+import { arbitrumSepolia } from "viem/chains";
 import { publicProvider } from "wagmi/providers/public";
 import CustomConnectButton from "./CustomConnectButton";
 import Title from "./Title";
 import Link from "next/link";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import UserNavMenu from "./UserNavMenu";
+import { Toaster } from "react-hot-toast";
+import RootContextProvider from "../context/RootContext";
 
 const { chains, publicClient } = configureChains(
-    [arbitrum, arbitrumSepolia],
+    [arbitrumSepolia],
     [publicProvider()]
 );
 
@@ -40,22 +42,41 @@ export default function RootClientComponent({
     return (
         <WagmiConfig config={wagmiConfig}>
             <RainbowKitProvider chains={chains}>
-                <main className="flex min-h-screen min-w-[1280px] space-y-[40px] flex-col items-center px-[60px] py-[80px] max-w-[1280px]">
-                    <div className="flex w-[100%] justify-between items-center">
-                        <div>
-                            <Link href={"/"}>
-                                <Title className="text-[28px] italic">
-                                    AlloKate
-                                </Title>
-                            </Link>
+                <Toaster
+                    position="top-center"
+                    reverseOrder={false}
+                    gutter={8}
+                    containerClassName=""
+                    containerStyle={{}}
+                    toastOptions={{
+                        // Define default options
+                        className: "toast",
+                        duration: 20000,
+
+                        // Default options for specific types
+                        success: {
+                            duration: 3000,
+                        },
+                    }}
+                />
+                <RootContextProvider>
+                    <main className="flex min-h-screen min-w-[1280px] space-y-[40px] flex-col items-center px-[60px] py-[80px] max-w-[1280px]">
+                        <div className="flex w-[100%] justify-between items-center">
+                            <div>
+                                <Link href={"/"}>
+                                    <Title className="text-[28px] italic">
+                                        AlloKate
+                                    </Title>
+                                </Link>
+                            </div>
+                            <div className="flex space-x-8 items-center">
+                                <UserNavMenu />
+                                <CustomConnectButton />
+                            </div>
                         </div>
-                        <div className="flex space-x-8 items-center">
-                            <UserNavMenu />
-                            <CustomConnectButton />
-                        </div>
-                    </div>
-                    {children}
-                </main>
+                        {children}
+                    </main>
+                </RootContextProvider>
             </RainbowKitProvider>
         </WagmiConfig>
     );

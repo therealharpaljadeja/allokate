@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import ReactMde, { Preview } from "react-mde";
 import ReactMarkdown from "react-markdown";
 import "react-mde/lib/styles/css/react-mde-all.css";
-import { getIPFSClient } from "@/services/ipfs";
+import { getIPFSClient } from "@/src/services/ipfs";
 
 const buttonStyles = `
   .mde-tabs button {

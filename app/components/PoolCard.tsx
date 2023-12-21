@@ -2,9 +2,10 @@ type PoolCardProps = {
     imageSrc: string;
     title: string;
     shortDescription: string;
-    maxAllocation: number;
-    amount: number;
+    maxAllocation: string;
+    amount: string;
     endDate: string;
+    key: string;
 };
 
 export default function PoolCard({
@@ -14,16 +15,26 @@ export default function PoolCard({
     maxAllocation,
     amount,
     endDate,
+    key,
 }: PoolCardProps) {
     return (
-        <div className="w-full border-b-[3px] box-content border-b-color-400 bg-color-500 flex flex-col">
+        <div
+            key={key}
+            className="w-full border-b-[3px] box-content border-b-color-400 bg-color-500 flex flex-col"
+        >
             <div>
-                <img src={imageSrc} />
+                <img
+                    src={
+                        imageSrc.length ? imageSrc : "./no_image_available.png"
+                    }
+                />
             </div>
             <div className="flex flex-col w-full px-[20px] py-[15px] space-y-6">
                 <div className="flex flex-col w-full space-y-2">
-                    <h4 className="font-WorkSans">{title}</h4>
-                    <p className="font-WorkSans">{shortDescription}</p>
+                    <h4 className="font-PlayFairDisplay italic">{title}</h4>
+                    <p className="font-WorkSans text-[14px]">
+                        {shortDescription}
+                    </p>
                 </div>
                 <div className="flex justify-between w-full">
                     <div className="flex flex-col space-y-2">

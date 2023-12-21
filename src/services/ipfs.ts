@@ -24,12 +24,12 @@ export default class IPFSClient {
     private jwt: string;
 
     private readGateway: string;
-
     private writeGateway: string;
 
     private pinJSONToIPFSUrl: string;
-
     private pinFileToIPFSUrl: string;
+
+    private pinata: any;
 
     constructor(config: Config) {
         this.jwt = config.jwt;
@@ -64,7 +64,7 @@ export default class IPFSClient {
             pinataMetadata: {
                 name,
                 keyvalues: {
-                    app: "micro-grants",
+                    app: "allokate",
                 },
             },
         };
@@ -72,18 +72,22 @@ export default class IPFSClient {
 
     async pinJSON(object: any) {
         const data = {
-            ...this.baseRequestData("micro-grants"),
+            ...this.baseRequestData("allokate"),
             pinataContent: object,
         };
 
         const resp = await fetch(this.pinJSONToIPFSUrl, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${this.jwt}`,
+                "access-control-allow-origin": "*",
+                "Access-Control-Allow-Headers": "Authorization",
+                "Access-Control-Allow-Methods": "GET",
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(data),
         });
+
         if (resp.ok) {
             return resp.json();
         }
