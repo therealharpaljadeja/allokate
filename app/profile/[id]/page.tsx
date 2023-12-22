@@ -1,28 +1,45 @@
 "use client";
 
-import Title from "../components/Title";
+import Title from "../../components/Title";
 import { Tab } from "@headlessui/react";
-import CustomTab from "../components/CustomTab";
-import Address from "../components/Address";
-import Avatar from "../components/Avatar";
-import { RootContext } from "../context/RootContext";
-import { useContext, useEffect, useState } from "react";
-import Text from "../components/Text";
-import SideTable from "../components/SideTable";
+import CustomTab from "../../components/CustomTab";
+import Address from "../../components/Address";
+import Avatar from "../../components/Avatar";
+import { useEffect, useState } from "react";
+import Text from "../../components/Text";
+import SideTable from "../../components/SideTable";
 import Link from "next/link";
-import { getPoolsByProfileId } from "@/src/utils/request";
-import { TGetPoolsByProfileIdResponse } from "@/src/utils/types";
-import PoolsGrid from "../components/PoolsGrid";
+import { getPoolsByProfileId, getProfileById } from "@/src/utils/request";
+import { TPoolClientSide, TProfileClientSide } from "@/src/utils/types";
+import PoolsGrid from "../../components/PoolsGrid";
+import { useNetwork } from "wagmi";
 
-export default function Me() {
-    const [pools, setPools] = useState<TGetPoolsByProfileIdResponse[] | null>(
-        null
+export default function Me({ params }: { params: { id: string } }) {
+    const [pools, setPools] = useState<TPoolClientSide[] | undefined>(
+        undefined
     );
-    const { profile } = useContext(RootContext);
+    const [profile, setProfile] = useState<TProfileClientSide>();
+
+    const { chain } = useNetwork();
+    let { id } = params;
+
+    useEffect(() => {
+        (async () => {
+            if (chain) {
+                let profile = await getProfileById({
+                    chainId: chain?.id.toString(),
+                    profileId: id,
+                });
+
+                setProfile(profile);
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         if (profile) {
             (async () => {
+                console.log(profile.profileId);
                 let pools = await getPoolsByProfileId(profile.profileId);
                 setPools(pools);
             })();
@@ -31,7 +48,8 @@ export default function Me() {
 
     if (!profile) return <Text className="text-[24px]">Loading...</Text>;
 
-    let { profileId, anchor, createdAt, metadata, owner } = profile;
+    let { profileId, anchor, metadata, owner } = profile;
+
     let { name, email, website, description } = metadata;
 
     let SideTableItems = [
@@ -50,8 +68,8 @@ export default function Me() {
         {
             label: "Website",
             value: (
-                <Link href={website} target="_blank">
-                    <Text className="underline">{website}</Text>
+                <Link href={website ?? "#"} target="_blank">
+                    <Text className="underline">{website ?? "#"}</Text>
                 </Link>
             ),
         },

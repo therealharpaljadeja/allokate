@@ -6,12 +6,12 @@ type AddressProps = {
     inputAddress?: string;
 };
 
+export function sliceAddress(address: string) {
+    if (address) return `${address.slice(0, 5)}...${address.slice(-4)}`;
+}
+
 export default function Address({ inputAddress }: AddressProps) {
     const { address } = useAccount();
-
-    function sliceAddress(address: string) {
-        if (address) return `${address.slice(0, 5)}...${address.slice(-4)}`;
-    }
 
     return (
         <Link

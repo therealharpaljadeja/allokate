@@ -4,7 +4,7 @@ import {
     keccak256,
     stringToBytes,
 } from "viem";
-import { AbiItem, AbiComponent, ContractAbi } from "./types";
+import { AbiItem, AbiComponent, ContractAbi, EPoolStatus } from "./types";
 
 export const extractLogByEventName = (logs: any[], eventName: string) => {
     return logs.find((log) => log.eventName === eventName);
@@ -73,3 +73,20 @@ function flattenInputTypes(
 
     return result;
 }
+
+export const getPoolStatus = (
+    startDate: number,
+    endDate: number
+): EPoolStatus => {
+    const now = new Date().getTime() / 1000;
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+
+    if (now < start) {
+        return EPoolStatus.UPCOMING;
+    } else if (now > end) {
+        return EPoolStatus.ENDED;
+    } else {
+        return EPoolStatus.ACTIVE;
+    }
+};

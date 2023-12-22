@@ -7,16 +7,25 @@ import { TPoolClientSide } from "@/src/utils/types";
 
 type TableProps = {
     activeGrants?: TPoolClientSide[];
+    upcomingGrants?: TPoolClientSide[];
     inactiveGrants?: TPoolClientSide[];
 };
 
-export default function Table({ activeGrants, inactiveGrants }: TableProps) {
+export default function Table({
+    activeGrants,
+    upcomingGrants,
+    inactiveGrants,
+}: TableProps) {
     return (
         <Tab.Group>
             <Tab.List className="w-full flex items-baseline border-b-[2px] border-b-color-100">
                 <CustomTab
                     title="Active"
                     count={activeGrants ? activeGrants.length : 0}
+                />
+                <CustomTab
+                    title="Upcoming"
+                    count={upcomingGrants ? upcomingGrants.length : 0}
                 />
                 <CustomTab
                     title="Ended"
@@ -31,6 +40,15 @@ export default function Table({ activeGrants, inactiveGrants }: TableProps) {
                         </Text>
                     ) : (
                         <PoolsGrid pools={activeGrants} />
+                    )}
+                </Tab.Panel>
+                <Tab.Panel className="w-full grid grid-cols-3 gap-x-[20px] gap-y-[20px]">
+                    {!upcomingGrants ? (
+                        <Text className="font-WorkSans text-[20px]">
+                            Loading...
+                        </Text>
+                    ) : (
+                        <PoolsGrid pools={upcomingGrants} />
                     )}
                 </Tab.Panel>
                 <Tab.Panel className="w-full grid grid-cols-3 gap-x-[20px] gap-y-[20px]">

@@ -1,6 +1,7 @@
 "use server";
 
 import {
+    EPoolStatus,
     TApplicationData,
     TApplicationMetadata,
     TGetPoolsByProfileId,
@@ -8,6 +9,9 @@ import {
     TPoolClientSide,
     TPoolMetadataClientSide,
     TPoolMetadataRaw,
+    TPoolRaw,
+    TProfileClientSide,
+    TProfileMetadata,
     TProfileResponse,
     TProfilesByOwnerResponse,
 } from "@/src/utils/types";
@@ -15,9 +19,11 @@ import {
     getActiveMicroGrantsQuery,
     getEndedMicroGrantsQuery,
     getMicroGrantRecipientQuery,
+    getPoolByPoolIdQuery,
     getPoolsByProfileIdQuery,
-    getProfile,
+    getProfileQuery,
     getProfilesByOwnerQuery,
+    getUpcomingMicroGrantsQuery,
     graphqlEndpoint,
 } from "./query";
 import request from "graphql-request";
@@ -61,15 +67,36 @@ export const getProfileById = async ({
 }: {
     chainId: string;
     profileId: string;
-}): Promise<TProfileResponse> => {
-    const response: {
+}): Promise<TProfileClientSide> => {
+    const {
+        profile,
+    }: {
         profile: TProfileResponse;
-    } = await request(graphqlEndpoint, getProfile, {
+    } = await request(graphqlEndpoint, getProfileQuery, {
         chainId: chainId,
         profileId: profileId,
     });
 
-    return response.profile;
+    let result = {} as TProfileClientSide;
+
+    let metadataPointer = profile.metadataPointer;
+
+    let ipfsClient = await getIPFSClient();
+
+    let metadata: TProfileMetadata = await ipfsClient.fetchJson(
+        metadataPointer
+    );
+
+    result.anchor = profile.anchor;
+    result.createdAt = profile.createdAt;
+    result.creator = profile.creator;
+    result.metadata = metadata;
+    result.name = profile.name;
+    result.nonce = profile.nonce;
+    result.owner = profile.owner;
+    result.profileId = profile.profileId;
+
+    return result;
 };
 
 export default getProfilesByOwner;
@@ -145,12 +172,13 @@ export const getPoolsByProfileId = async (
             let ipfsClient = await getIPFSClient();
 
             let metadata = await ipfsClient.fetchJson(metadataPointer);
+            if (metadata.base64Image) {
+                let imagePointer = metadata.base64Image;
 
-            let imagePointer = metadata.base64Image;
+                let image = await ipfsClient.fetchJson(imagePointer);
 
-            let image = await ipfsClient.fetchJson(imagePointer);
-
-            metadata.image = image;
+                metadata.image = image;
+            }
 
             result.push({ ...pool, metadata, id: pool.poolId });
         }
@@ -161,24 +189,60 @@ export const getPoolsByProfileId = async (
     }
 };
 
-export async function getActiveMicroGrants(): Promise<TPoolClientSide[]> {
-    const { activeMicroGrants }: { activeMicroGrants: TMicroGrantRaw[] } =
-        await request(graphqlEndpoint, getActiveMicroGrantsQuery, {
-            first: 6,
-            offset: 0,
-        });
+export async function getGrants(
+    grantStatus: EPoolStatus
+): Promise<TPoolClientSide[]> {
+    let grants = [] as TMicroGrantRaw[];
+    const result = [] as TPoolClientSide[];
 
-    let result: TPoolClientSide[] = [];
+    switch (grantStatus) {
+        case EPoolStatus.ACTIVE:
+            const {
+                activeMicroGrants,
+            }: { activeMicroGrants: TMicroGrantRaw[] } = await request(
+                graphqlEndpoint,
+                getActiveMicroGrantsQuery,
+                {
+                    first: 6,
+                    offset: 0,
+                }
+            );
+
+            grants = activeMicroGrants;
+            break;
+        case EPoolStatus.ENDED:
+            const { endedMicroGrants }: { endedMicroGrants: TMicroGrantRaw[] } =
+                await request(graphqlEndpoint, getEndedMicroGrantsQuery, {
+                    first: 6,
+                    offset: 0,
+                });
+            grants = endedMicroGrants;
+            break;
+        case EPoolStatus.UPCOMING:
+            const {
+                upcomingMicroGrants,
+            }: { upcomingMicroGrants: TMicroGrantRaw[] } = await request(
+                graphqlEndpoint,
+                getUpcomingMicroGrantsQuery,
+                {
+                    first: 6,
+                    offset: 0,
+                }
+            );
+
+            grants = upcomingMicroGrants;
+            break;
+    }
 
     const ipfsClient = await getIPFSClient();
 
-    for (let i = 0; i < activeMicroGrants.length; i++) {
+    for (let i = 0; i < grants.length; i++) {
         let pool = {} as TPoolClientSide;
 
-        pool.id = activeMicroGrants[i].poolId;
-        pool.amount = activeMicroGrants[i].pool.amount;
+        pool.id = grants[i].poolId;
+        pool.amount = grants[i].pool.amount;
 
-        let metadataPointer = activeMicroGrants[i].pool.metadataPointer;
+        let metadataPointer = grants[i].pool.metadataPointer;
 
         let poolMetadata = {} as TPoolMetadataClientSide;
 
@@ -197,10 +261,10 @@ export async function getActiveMicroGrants(): Promise<TPoolClientSide[]> {
         }
 
         pool.microGrant = {
-            allocationEndTime: activeMicroGrants[i].allocationEndTime,
-            allocationStartTime: activeMicroGrants[i].allocationStartTime,
-            approvalThreshold: activeMicroGrants[i].approvalThreshold,
-            maxRequestedAmount: activeMicroGrants[i].maxRequestedAmount,
+            allocationEndTime: grants[i].allocationEndTime,
+            allocationStartTime: grants[i].allocationStartTime,
+            approvalThreshold: grants[i].approvalThreshold,
+            maxRequestedAmount: grants[i].maxRequestedAmount,
         };
 
         result.push(pool);
@@ -209,50 +273,60 @@ export async function getActiveMicroGrants(): Promise<TPoolClientSide[]> {
     return result;
 }
 
-export async function getEndedMicroGrants(): Promise<TPoolClientSide[]> {
-    const { endedMicroGrants }: { endedMicroGrants: TMicroGrantRaw[] } =
-        await request(graphqlEndpoint, getEndedMicroGrantsQuery, {
-            first: 6,
-            offset: 0,
-        });
-
-    let result: TPoolClientSide[] = [];
-
-    const ipfsClient = await getIPFSClient();
-
-    for (let i = 0; i < endedMicroGrants.length; i++) {
-        let pool = {} as TPoolClientSide;
-
-        pool.id = endedMicroGrants[i].poolId;
-        pool.amount = endedMicroGrants[i].pool.amount;
-
-        let metadataPointer = endedMicroGrants[i].pool.metadataPointer;
-
-        let poolMetadata = {} as TPoolMetadataClientSide;
-
-        let metadata: TPoolMetadataRaw = await ipfsClient.fetchJson(
-            metadataPointer
-        );
-
-        poolMetadata = metadata;
-
-        if (metadata.base64Image) {
-            let image = await ipfsClient.fetchJson(metadata.base64Image);
-
-            poolMetadata.image = image;
+export async function getPoolByPoolId(id: string): Promise<TPoolClientSide> {
+    let { pools }: { pools: TPoolRaw[] } = await request(
+        graphqlEndpoint,
+        getPoolByPoolIdQuery,
+        {
+            poolId: id,
         }
+    );
 
-        pool.metadata = poolMetadata;
+    let poolsOnArbitrum = pools.filter((pool) => pool.chainId === "421614");
 
-        pool.microGrant = {
-            allocationEndTime: endedMicroGrants[i].allocationEndTime,
-            allocationStartTime: endedMicroGrants[i].allocationStartTime,
-            approvalThreshold: endedMicroGrants[i].approvalThreshold,
-            maxRequestedAmount: endedMicroGrants[i].maxRequestedAmount,
-        };
+    // Getting the result pool
+    let pool = poolsOnArbitrum[0];
 
-        result.push(pool);
+    let ipfsClient = await getIPFSClient();
+
+    let { metadataPointer } = pool;
+
+    let poolMetadata: TPoolMetadataRaw = await ipfsClient.fetchJson(
+        metadataPointer
+    );
+
+    let poolMetadataClient: TPoolMetadataClientSide;
+
+    poolMetadataClient = poolMetadata;
+
+    let imagePointer = poolMetadata.base64Image;
+
+    if (imagePointer) {
+        let image = await ipfsClient.fetchJson(imagePointer);
+        poolMetadataClient.image = image;
     }
+
+    let profileMetadataPointer = pool.profile.metadataPointer;
+
+    let profileMetadata: TProfileMetadata = await ipfsClient.fetchJson(
+        profileMetadataPointer
+    );
+
+    let result = {} as TPoolClientSide;
+
+    result.id = pool.poolId;
+    result.amount = pool.amount;
+    result.managerRoleId = pool.managerRoleId;
+    result.adminRoleId = pool.adminRoleId;
+    result.metadata = poolMetadataClient;
+    result.microGrant = pool.microGrant;
+    result.profile = profileMetadata;
+    result.profileId = pool.profileId;
+    result.strategy = pool.strategy;
+    result.strategyId = pool.strategyId;
+    result.strategyName = pool.strategyName;
+    result.token = pool.token;
+    result.tokenMetadata = pool.tokenMetadata;
 
     return result;
 }

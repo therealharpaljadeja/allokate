@@ -226,7 +226,7 @@ export const getProfilesByOwnerQuery = gql`
     }
 `;
 
-export const getProfile = gql`
+export const getProfileQuery = gql`
     query getProfile($chainId: String!, $profileId: String!) {
         profile(chainId: $chainId, profileId: $profileId) {
             profileId
@@ -252,6 +252,51 @@ export const getPoolsByProfileIdQuery = gql`
                 allocationEndTime
                 approvalThreshold
                 maxRequestedAmount
+            }
+        }
+    }
+`;
+
+export const getPoolByPoolIdQuery = gql`
+    query getPoolByPoolId($poolId: String!) {
+        pools(condition: { poolId: $poolId }) {
+            poolId
+            chainId
+            profileId
+            strategy
+            strategyName
+            strategyId
+            token
+            tokenMetadata
+            amount
+            metadataPointer
+            adminRoleId
+            managerRoleId
+            profile {
+                name
+                metadataPointer
+                owner
+                anchor
+            }
+            microGrant {
+                allocationStartTime
+                allocationEndTime
+                approvalThreshold
+                maxRequestedAmount
+                useRegistryAnchor
+                microGrantRecipients {
+                    strategy
+                    recipientAddress
+                    requestedAmount
+                    isUsingRegistryAnchor
+                    status
+                    metadataProtocol
+                    metadataPointer
+                    sender
+                    blockHash
+                    blockNumber
+                    blockTimestamp
+                }
             }
         }
     }

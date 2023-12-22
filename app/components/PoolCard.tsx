@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type PoolCardProps = {
     imageSrc: string;
     title: string;
@@ -5,7 +7,7 @@ type PoolCardProps = {
     maxAllocation: string;
     amount: string;
     endDate: string;
-    key: string;
+    id: string;
 };
 
 export default function PoolCard({
@@ -15,23 +17,25 @@ export default function PoolCard({
     maxAllocation,
     amount,
     endDate,
-    key,
+    id,
 }: PoolCardProps) {
     return (
         <div
-            key={key}
+            key={id}
             className="w-full border-b-[3px] box-content border-b-color-400 bg-color-500 flex flex-col"
         >
             <div>
                 <img
-                    src={
-                        imageSrc.length ? imageSrc : "./no_image_available.png"
-                    }
+                    src={imageSrc.length ? imageSrc : "/no_image_available.png"}
                 />
             </div>
             <div className="flex flex-col w-full px-[20px] py-[15px] space-y-6">
                 <div className="flex flex-col w-full space-y-2">
-                    <h4 className="font-PlayFairDisplay italic">{title}</h4>
+                    <Link href={`/pool/${id}`}>
+                        <h4 className="font-PlayFairDisplay hover:underline italic">
+                            {title}
+                        </h4>
+                    </Link>
                     <p className="font-WorkSans text-[14px]">
                         {shortDescription}
                     </p>

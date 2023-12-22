@@ -16,6 +16,7 @@ export type TProfileRaw = {
     nonce: string;
     owner: `0x${string}`;
     anchor: `0x${string}`;
+    metadataPointer: string;
 };
 
 export type TApplication = {
@@ -36,15 +37,20 @@ export interface IApplication extends TApplication {
 }
 
 export type TPoolRaw = {
-    id: string;
-    name: string;
+    poolId: string;
+    chainId: string;
+    profileId: `0x${string}`;
     strategy: `0x${string}`;
     strategyName: string;
-    tokenMetadata: TokenMetadata;
+    strategyId: `0x${string}`;
     token: `0x${string}`;
+    tokenMetadata: TokenMetadata;
     amount: string;
     metadataPointer: string;
+    adminRoleId: string;
+    managerRoleId: `0x${string}`;
     profile: TProfileRaw;
+    microGrant: TMicroGrantRaw;
 };
 
 export type TProfile = {
@@ -54,6 +60,13 @@ export type TProfile = {
     metadataPointer: string;
     isUsingRegistryAnchor: boolean;
     status: string;
+};
+
+export type TProfileMetadata = {
+    name: string;
+    website: string;
+    email: string;
+    description: string;
 };
 
 export type TApplicationMetadata = {
@@ -247,6 +260,7 @@ export type TMicroGrantRaw = {
     allocationEndTime: string;
     approvalThreshold: string;
     maxRequestedAmount: string;
+    useRegistryAnchor: boolean;
     blockTimestamp: string;
     pool: TPoolRaw;
 };
@@ -288,11 +302,23 @@ export type TMicroGrantClientSide = {
     allocationEndTime: string;
     approvalThreshold: string;
     maxRequestedAmount: string;
+    useRegistryAnchor?: boolean;
 };
 
 export type TPoolClientSide = {
     id: string;
     amount: string;
+    profileId?: string;
+    strategy?: `0x${string}`;
+    strategyName?: string;
+    strategyId?: `0x${string}`;
+    token?: `0x${string}`;
+    tokenMetadata?: TokenMetadata;
+    metadataPointer?: string;
+    adminRoleId?: string;
+    managerRoleId?: `0x${string}`;
+    useRegistryAnchor?: boolean;
+    profile?: TProfileMetadata;
     microGrant: TMicroGrantClientSide;
     metadata: TPoolMetadataClientSide;
 };
@@ -365,6 +391,15 @@ export type TProfileResponse = {
     anchor: string;
     creator: string;
     createdAt: string;
+};
+
+export type TProfileClientSide = Omit<TProfileResponse, "metadataPointer"> & {
+    metadata: {
+        name: string;
+        email: string;
+        website: string;
+        description: string;
+    };
 };
 
 export type AbiComponent = {

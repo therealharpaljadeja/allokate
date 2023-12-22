@@ -31,6 +31,7 @@ export default function PoolsGrid({
             {pools?.map((pool) => (
                 <PoolCard
                     key={pool.id}
+                    id={pool.id}
                     amount={formatEther(BigInt(pool.amount))}
                     endDate={
                         pool.microGrant

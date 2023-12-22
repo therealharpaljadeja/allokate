@@ -3,7 +3,11 @@ import { TProfilesByOwnerResponse } from "@/src/utils/types";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import { useAccount, useNetwork } from "wagmi";
 
-export const RootContext = React.createContext<any | null>(null);
+export type RootContextType = {
+    profile: TProfilesByOwnerResponse | null;
+} | null;
+
+export const RootContext = React.createContext<RootContextType>(null);
 
 export default function RootContextProvider({ children }: PropsWithChildren) {
     const [profile, setProfile] = useState<TProfilesByOwnerResponse | null>(

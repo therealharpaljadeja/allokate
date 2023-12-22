@@ -3,8 +3,8 @@
 import Table from "./components/Table";
 import Card from "./components/Card";
 import { useEffect, useState } from "react";
-import { getActiveMicroGrants, getEndedMicroGrants } from "@/src/utils/request";
-import { TPoolClientSide } from "@/src/utils/types";
+import { getGrants } from "@/src/utils/request";
+import { EPoolStatus, TPoolClientSide } from "@/src/utils/types";
 
 export default function Home() {
     const [activeGrants, setActiveGrants] = useState<
@@ -15,17 +15,26 @@ export default function Home() {
         TPoolClientSide[] | undefined
     >(undefined);
 
+    const [upcomingGrants, setUpcomingGrants] = useState<
+        TPoolClientSide[] | undefined
+    >(undefined);
+
     const [totalPools, setTotalPools] = useState<number>(0);
 
     useEffect(() => {
         (async () => {
-            const activeGrants = await getActiveMicroGrants();
+            const activeGrants = await getGrants(EPoolStatus.ACTIVE);
             setActiveGrants(activeGrants);
 
-            const endedGrants = await getEndedMicroGrants();
+            const endedGrants = await getGrants(EPoolStatus.ENDED);
             setEndedMicroGrants(endedGrants);
 
-            setTotalPools(activeGrants.length + endedGrants.length);
+            const upcomingGrants = await getGrants(EPoolStatus.UPCOMING);
+            setUpcomingGrants(upcomingGrants);
+
+            setTotalPools(
+                activeGrants.length + endedGrants.length + upcomingGrants.length
+            );
         })();
     }, []);
 
@@ -44,6 +53,7 @@ export default function Home() {
                 <Table
                     activeGrants={activeGrants}
                     inactiveGrants={endedMicroGrants}
+                    upcomingGrants={upcomingGrants}
                 />
             </div>
         </>

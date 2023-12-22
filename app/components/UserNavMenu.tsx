@@ -1,14 +1,18 @@
 import { useAccount } from "wagmi";
 import Title from "./Title";
 import Link from "next/link";
-import { RootContext } from "../context/RootContext";
+import { RootContext, RootContextType } from "../context/RootContext";
 import { useContext } from "react";
 
 export default function UserNavMenu() {
     const { isConnected } = useAccount();
-    const { profile } = useContext(RootContext);
+    const context = useContext(RootContext) as RootContextType;
+
+    if (!context) return null;
 
     if (!isConnected) return null;
+
+    let { profile } = context;
 
     return (
         <div className="flex items-center space-x-4">
@@ -26,7 +30,7 @@ export default function UserNavMenu() {
                     </Title>
                 ) : null}
             </Link>
-            <Link href="/me">
+            <Link href={`/profile/${profile?.profileId}`}>
                 <Title className="hover:underline italic text-[20px]">
                     Dashboard
                 </Title>
