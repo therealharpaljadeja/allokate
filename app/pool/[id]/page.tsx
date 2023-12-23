@@ -1,13 +1,22 @@
 "use client";
 
 import { sliceAddress } from "@/app/components/Address";
+import ApplicationGrid from "@/app/components/ApplicationGrid";
 import Button from "@/app/components/Button";
 import CustomTab from "@/app/components/CustomTab";
 import SideTable from "@/app/components/SideTable";
 import Text from "@/app/components/Text";
+import Title from "@/app/components/Title";
 import { getPoolStatus } from "@/src/utils/common";
-import { getPoolByPoolId } from "@/src/utils/request";
-import { EPoolStatus, TPoolClientSide } from "@/src/utils/types";
+import {
+    getMicroGrantRecipientsByPoolId,
+    getPoolByPoolId,
+} from "@/src/utils/request";
+import {
+    EPoolStatus,
+    TMicroGrantRecipientClientSide,
+    TPoolClientSide,
+} from "@/src/utils/types";
 import { Tab } from "@headlessui/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -22,6 +31,9 @@ const statusColorScheme = {
 
 export default function Pool({ params }: { params: { id: string } }) {
     const [pool, setPool] = useState<TPoolClientSide | null>(null);
+    const [recipients, setRecipients] = useState<
+        TMicroGrantRecipientClientSide[] | undefined
+    >();
     const [poolStatus, setPoolStatus] = useState<EPoolStatus>(
         EPoolStatus.ENDED
     );
@@ -32,18 +44,30 @@ export default function Pool({ params }: { params: { id: string } }) {
             let response = await getPoolByPoolId(id);
 
             setPool(response);
-
-            setPoolStatus(
-                getPoolStatus(
-                    Number(response.microGrant.allocationStartTime),
-                    Number(response.microGrant.allocationEndTime)
-                )
-            );
         })();
     }, []);
 
+    useEffect(() => {
+        if (pool && Object.keys(pool).length) {
+            (async () => {
+                let recipients = await getMicroGrantRecipientsByPoolId(pool.id);
+                setRecipients(recipients);
+            })();
+
+            setPoolStatus(
+                getPoolStatus(
+                    Number(pool.microGrant.allocationStartTime),
+                    Number(pool.microGrant.allocationEndTime)
+                )
+            );
+        }
+    }, [pool]);
+
     if (!pool)
         return <Text className="font-WorkSans text-[24px]">Loading...</Text>;
+
+    if (!Object.keys(pool).length)
+        return <Text className="font-WorkSans text-[24px]">No Such pool</Text>;
 
     const items = [
         {
@@ -108,7 +132,7 @@ export default function Pool({ params }: { params: { id: string } }) {
         },
         {
             label: "Applications",
-            value: "0",
+            value: recipients ? recipients.length.toString() : "0",
         },
         {
             label: "Profile Required",
@@ -131,16 +155,34 @@ export default function Pool({ params }: { params: { id: string } }) {
                     <Tab.Group>
                         <Tab.List className="w-full flex items-baseline border-b-[2px] border-b-color-100">
                             <CustomTab title="Pool Description" />
-                            <CustomTab title="Applications" count={12} />
+                            <CustomTab
+                                title="Applications"
+                                count={recipients ? recipients.length : 0}
+                            />
                         </Tab.List>
                         <Tab.Panels className="mt-4">
-                            <Tab.Panel>{pool.metadata.description}</Tab.Panel>
+                            <Tab.Panel>
+                                <div className="flex flex-col space-y-6 items-start">
+                                    <Title className="text-[28px] italic">
+                                        {pool.metadata.name}
+                                    </Title>
+                                    <p>{pool.metadata.description}</p>
+                                </div>
+                            </Tab.Panel>
+                            <Tab.Panel className="w-full grid grid-cols-2 gap-x-4 gap-y-4 mt-4">
+                                <ApplicationGrid applications={recipients} />
+                            </Tab.Panel>
                         </Tab.Panels>
                     </Tab.Group>
                 </div>
                 <div className="flex flex-col items-stretch space-y-4">
                     {poolStatus === EPoolStatus.ACTIVE ? (
-                        <Button>Apply</Button>
+                        <Link
+                            className="w-full"
+                            href={`/pool/${pool.id}/apply`}
+                        >
+                            <Button className="w-full">Apply</Button>
+                        </Link>
                     ) : poolStatus === EPoolStatus.UPCOMING ? (
                         <Button disabled={true}>Coming Soon</Button>
                     ) : (

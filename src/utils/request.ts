@@ -3,9 +3,13 @@
 import {
     EPoolStatus,
     TApplicationData,
-    TApplicationMetadata,
+    TApplicationMetadataRaw,
     TGetPoolsByProfileId,
     TMicroGrantRaw,
+    TMicroGrantRecipientByAppIdClientSide,
+    TMicroGrantRecipientByAppIdRaw,
+    TMicroGrantRecipientClientSide,
+    TMicroGrantRecipientRaw,
     TPoolClientSide,
     TPoolMetadataClientSide,
     TPoolMetadataRaw,
@@ -19,6 +23,7 @@ import {
     getActiveMicroGrantsQuery,
     getEndedMicroGrantsQuery,
     getMicroGrantRecipientQuery,
+    getMicroGrantRecipientsBySenderQuery,
     getPoolByPoolIdQuery,
     getPoolsByProfileIdQuery,
     getProfileQuery,
@@ -105,46 +110,39 @@ export const getApplicationData = async (
     chainId: string,
     poolId: string,
     applicationId: string
-): Promise<{
-    application: TApplicationData;
-    metadata: TApplicationMetadata;
-    bannerImage: string;
-}> => {
+): Promise<TMicroGrantRecipientByAppIdClientSide> => {
     try {
-        let banner;
+        const response: {
+            microGrantRecipient: TMicroGrantRecipientByAppIdRaw;
+        } = await request(graphqlEndpoint, getMicroGrantRecipientQuery, {
+            chainId: chainId,
+            poolId: poolId,
+            recipientId: applicationId.toLocaleLowerCase(),
+        });
 
-        const response: { microGrantRecipient: TApplicationData } =
-            await request(graphqlEndpoint, getMicroGrantRecipientQuery, {
-                chainId: chainId,
-                poolId: poolId,
-                recipientId: applicationId.toLocaleLowerCase(),
-            });
+        let result = {} as TMicroGrantRecipientByAppIdClientSide;
 
         const application = response.microGrantRecipient;
 
         const ipfsClient = getIPFSClient();
 
-        const metadata: TApplicationMetadata = await ipfsClient.fetchJson(
+        const metadata: TApplicationMetadataRaw = await ipfsClient.fetchJson(
             application.metadataPointer
         );
 
-        if (!metadata.name)
-            metadata.name = `Pool ${application.microGrant.poolId}`;
+        result.metadata = metadata;
 
-        try {
+        if (metadata.base64Image) {
             const bannerImage = await ipfsClient.fetchJson(
                 metadata.base64Image
             );
-            banner = bannerImage!.data ? bannerImage.data : "";
-        } catch (error) {
-            console.error("unable to load banner");
+
+            result.metadata.image = bannerImage;
         }
 
-        return {
-            application: application,
-            metadata: metadata,
-            bannerImage: banner,
-        };
+        result = { ...result, ...application };
+
+        return result;
     } catch (error) {
         throw new Error("Error fetching application data");
     }
@@ -287,46 +285,122 @@ export async function getPoolByPoolId(id: string): Promise<TPoolClientSide> {
     // Getting the result pool
     let pool = poolsOnArbitrum[0];
 
-    let ipfsClient = await getIPFSClient();
-
-    let { metadataPointer } = pool;
-
-    let poolMetadata: TPoolMetadataRaw = await ipfsClient.fetchJson(
-        metadataPointer
-    );
-
-    let poolMetadataClient: TPoolMetadataClientSide;
-
-    poolMetadataClient = poolMetadata;
-
-    let imagePointer = poolMetadata.base64Image;
-
-    if (imagePointer) {
-        let image = await ipfsClient.fetchJson(imagePointer);
-        poolMetadataClient.image = image;
-    }
-
-    let profileMetadataPointer = pool.profile.metadataPointer;
-
-    let profileMetadata: TProfileMetadata = await ipfsClient.fetchJson(
-        profileMetadataPointer
-    );
-
     let result = {} as TPoolClientSide;
 
-    result.id = pool.poolId;
-    result.amount = pool.amount;
-    result.managerRoleId = pool.managerRoleId;
-    result.adminRoleId = pool.adminRoleId;
-    result.metadata = poolMetadataClient;
-    result.microGrant = pool.microGrant;
-    result.profile = profileMetadata;
-    result.profileId = pool.profileId;
-    result.strategy = pool.strategy;
-    result.strategyId = pool.strategyId;
-    result.strategyName = pool.strategyName;
-    result.token = pool.token;
-    result.tokenMetadata = pool.tokenMetadata;
+    if (pool) {
+        let ipfsClient = await getIPFSClient();
+
+        let { metadataPointer } = pool;
+
+        let poolMetadata: TPoolMetadataRaw = await ipfsClient.fetchJson(
+            metadataPointer
+        );
+
+        let poolMetadataClient: TPoolMetadataClientSide;
+
+        poolMetadataClient = poolMetadata;
+
+        let imagePointer = poolMetadata.base64Image;
+
+        if (imagePointer) {
+            let image = await ipfsClient.fetchJson(imagePointer);
+            poolMetadataClient.image = image;
+        }
+
+        let profileMetadataPointer = pool.profile.metadataPointer;
+
+        let profileMetadata: TProfileMetadata = await ipfsClient.fetchJson(
+            profileMetadataPointer
+        );
+
+        result.id = pool.poolId;
+        result.amount = pool.amount;
+        result.managerRoleId = pool.managerRoleId;
+        result.adminRoleId = pool.adminRoleId;
+        result.metadata = poolMetadataClient;
+        result.microGrant = pool.microGrant;
+        result.profile = profileMetadata;
+        result.profileId = pool.profileId;
+        result.strategy = pool.strategy;
+        result.strategyId = pool.strategyId;
+        result.strategyName = pool.strategyName;
+        result.token = pool.token;
+        result.tokenMetadata = pool.tokenMetadata;
+    }
+    return result;
+}
+
+export async function microGrantRecipientsRawToClientSide(
+    microGrantRecipients: TMicroGrantRecipientRaw[]
+): Promise<TMicroGrantRecipientClientSide[]> {
+    let result: TMicroGrantRecipientClientSide[] =
+        [] as TMicroGrantRecipientClientSide[];
+
+    let ipfsClient = await getIPFSClient();
+
+    for await (let recipient of microGrantRecipients) {
+        let final: TMicroGrantRecipientClientSide =
+            {} as TMicroGrantRecipientClientSide;
+
+        let metadataPointer = recipient.metadataPointer;
+        if (metadataPointer !== "[object Object]") {
+            let metadata: TApplicationMetadataRaw = await ipfsClient.fetchJson(
+                metadataPointer
+            );
+
+            final.metadata = metadata;
+            if (metadata.base64Image) {
+                let imagePointer = metadata.base64Image;
+
+                let image = await ipfsClient.fetchJson(imagePointer);
+
+                final.metadata.image = image;
+            }
+
+            final.blockTimestamp = recipient.blockTimestamp;
+            final.poolId = recipient.poolId;
+            final.recipientId = recipient.recipientId;
+            final.requestedAmount = recipient.requestedAmount;
+            final.sender = recipient.sender;
+            final.status = recipient.status;
+
+            result.push(final);
+        }
+    }
 
     return result;
+}
+
+export async function getMicroGrantRecipientsByPoolId(poolId: string) {
+    let {
+        microGrantRecipients,
+    }: { microGrantRecipients: TMicroGrantRecipientRaw[] } = await request(
+        graphqlEndpoint,
+        getMicroGrantRecipientsBySenderQuery,
+        {}
+    );
+
+    let filtered = microGrantRecipients.filter(
+        (recipient) => recipient.poolId === poolId
+    );
+
+    return await microGrantRecipientsRawToClientSide(filtered);
+}
+
+export async function getMicroGrantRecipientBySender(
+    sender: `0x${string}`
+): Promise<TMicroGrantRecipientClientSide[]> {
+    let {
+        microGrantRecipients,
+    }: { microGrantRecipients: TMicroGrantRecipientRaw[] } = await request(
+        graphqlEndpoint,
+        getMicroGrantRecipientsBySenderQuery,
+        {}
+    );
+
+    let filtered = microGrantRecipients.filter(
+        (recipient) => recipient.sender === sender
+    );
+
+    return await microGrantRecipientsRawToClientSide(filtered);
 }

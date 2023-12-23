@@ -55,7 +55,7 @@ export const getActiveMicroGrantsQuery = gql`
     activeMicroGrants(
       orderBy: BLOCK_TIMESTAMP_DESC,
       first: $first,
-      offset: $offset
+      offset: $offset,
       condition: {chainId: "421614"}
     )
       ${microGrantsQuery}
@@ -64,14 +64,14 @@ export const getActiveMicroGrantsQuery = gql`
 
 export const getUpcomingMicroGrantsQuery = gql`
   query getUpcomingMicroGrantsQuery($first: Int!, $offset: Int!) {
-    upcomingMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, first: $first, offset: $offset)
+    upcomingMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, first: $first, offset: $offset, condition: {chainId: "421614"})
       ${microGrantsQuery}
   }
 `;
 
 export const getEndedMicroGrantsQuery = gql`
   query getEndedMicroGrantsQuery($first: Int!, $offset: Int!) {
-    endedMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, first: $first, offset: $offset)
+    endedMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, first: $first, offset: $offset, condition: {chainId: "421614"})
       ${microGrantsQuery}
   }
 `;
@@ -167,42 +167,12 @@ export const getMicroGrantRecipientQuery = gql`
             recipientId: $recipientId
         ) {
             microGrant {
-                poolId
-                chainId
                 allocationStartTime
                 allocationEndTime
                 maxRequestedAmount
                 blockTimestamp
-                pool {
-                    strategy
-                    tokenMetadata
-                    token
-                    amount
-                }
-                allocateds {
-                    recipientId
-                    sender
-                    contractAddress
-                    contractName
-                    chainId
-                    status
-                    blockTimestamp
-                    transactionHash
-                }
-                distributeds {
-                    recipientId
-                    recipientAddress
-                    amount
-                    sender
-                    contractName
-                    contractAddress
-                    transactionHash
-                    blockTimestamp
-                    chainId
-                }
             }
             sender
-            recipientId
             recipientAddress
             requestedAmount
             metadataPointer
@@ -298,6 +268,23 @@ export const getPoolByPoolIdQuery = gql`
                     blockTimestamp
                 }
             }
+        }
+    }
+`;
+
+export const getMicroGrantRecipientsBySenderQuery = gql`
+    query getMicroGrantRecipientsBySenderQuery {
+        microGrantRecipients(
+            condition: { chainId: "421614" }
+            orderBy: BLOCK_TIMESTAMP_DESC
+        ) {
+            recipientId
+            poolId
+            sender
+            requestedAmount
+            status
+            blockTimestamp
+            metadataPointer
         }
     }
 `;

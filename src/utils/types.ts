@@ -2,8 +2,6 @@ import { StrategyType } from "@allo-team/allo-v2-sdk/dist/strategies/MicroGrants
 
 export type TStrategyType = keyof typeof StrategyType;
 
-type ApplicationStatus = "Accepted" | "Rejected" | "Pending" | "Paid";
-
 export type TokenMetadata = {
     name: string;
     symbol: string;
@@ -23,7 +21,7 @@ export type TApplication = {
     id: number;
     name: string;
     description?: string;
-    status: ApplicationStatus;
+    status: EApplicationStatus;
     base64Image: string;
     recipientAddress: `0x${string}`;
     amountRequested: string;
@@ -69,7 +67,29 @@ export type TProfileMetadata = {
     description: string;
 };
 
-export type TApplicationMetadata = {
+export type TMicroGrantRecipientByAppIdRaw = {
+    microGrant: Pick<
+        TMicroGrantRaw,
+        | "allocationStartTime"
+        | "allocationEndTime"
+        | "blockTimestamp"
+        | "maxRequestedAmount"
+    >;
+    sender: `0x${string}`;
+    recipientAddress: `0x${string}`;
+    requestedAmount: string;
+    metadataPointer: string;
+    blockTimestamp: string;
+    isUsingRegistryAnchor: boolean;
+    status: EApplicationStatus;
+};
+
+export type TMicroGrantRecipientByAppIdClientSide = Omit<
+    TMicroGrantRecipientByAppIdRaw,
+    "metadataPointer"
+> & { metadata?: TApplicationMetadataClientSide };
+
+export type TApplicationMetadataRaw = {
     name: string;
     website: string;
     description: string;
@@ -77,24 +97,10 @@ export type TApplicationMetadata = {
     base64Image: string;
 };
 
-export type TNewApplication = TApplicationMetadata & {
-    requestedAmount: bigint;
-    recipientAddress: `0x${string}`;
-    profileId?: `0x${string}`;
-    profileName?: string;
-};
-
-export type TNewApplicationResponse = {
-    blockTimestamp: string;
-    isUsingRegistryAnchor: boolean;
-    metadataPointer: string;
-    recipientAddress: `0x${string}`;
-    recipientId: `0x${string}`;
-    requestedAmount: string;
-    status: ApplicationStatus;
-    metadata?: TApplicationMetadata;
-    applicationBanner?: string;
-};
+export type TApplicationMetadataClientSide = Omit<
+    TApplicationMetadataRaw,
+    "base64Image"
+> & { image?: { data: string } };
 
 // From API
 export type TPoolMetadataRaw = {
@@ -114,17 +120,20 @@ export type TPoolMetadataClientSide = {
     image?: { data: string };
 };
 
-export type TMicroGrantRecipient = {
+export type TMicroGrantRecipientRaw = {
     recipientId: `0x${string}`;
-    recipientAddress: `0x${string}`;
+    poolId: `0x${string}`;
+    sender: `0x${string}`;
     requestedAmount: string;
-    metadataPointer: string;
+    status: EApplicationStatus;
     blockTimestamp: string;
-    isUsingRegistryAnchor: boolean;
-    status: ApplicationStatus;
-    metadata?: any;
-    applicationBanner?: string;
+    metadataPointer: string;
 };
+
+export type TMicroGrantRecipientClientSide = Omit<
+    TMicroGrantRecipientRaw,
+    "metadataPointer"
+> & { metadata: TApplicationMetadataClientSide };
 
 export type TNewPool = TPoolMetadataRaw & {
     // chain info
@@ -149,46 +158,6 @@ export type TNewPool = TPoolMetadataRaw & {
 export type TNewPoolResponse = {
     address: `0x${string}`;
     poolId: number;
-};
-
-export type TPoolData = {
-    poolId: string;
-    chainId: string;
-    strategy: string;
-    allocationStartTime: number;
-    allocationEndTime: number;
-    approvalThreshold: number;
-    maxRequestedAmount: string;
-    blockTimestamp: string;
-    useRegistryAnchor: boolean;
-    pool: {
-        strategy: string;
-        strategyName: string;
-        tokenMetadata: {
-            name?: string;
-            symbol?: string;
-            decimals?: number;
-        };
-        token: `0x${string}`;
-        amount: string;
-        metadataPointer: string;
-        poolBanner: string;
-        metadata: TPoolMetadataRaw;
-        profile: {
-            profileId: `0x${string}`;
-            name: string;
-        };
-    };
-    allocateds: TAllocatedData[];
-    distributeds: TDistributedData[];
-    microGrantRecipients: TMicroGrantRecipient[];
-    strategyType: TStrategyType;
-    // Hat
-    hatId?: number;
-    // Gov
-    gov?: string;
-    minVotePower?: string;
-    snapshotReference?: string;
 };
 
 export type TApplicationData = {
@@ -265,38 +234,6 @@ export type TMicroGrantRaw = {
     pool: TPoolRaw;
 };
 
-// export type TPool = {
-//     strategy: `0x${string}`;
-//     strategyName: string;
-//     tokenMetadata: string;
-//     token: `0x${string}`;
-//     amount: string;
-//     metadataPointer: string;
-//     profile: {
-//         profileId: string;
-//         name: string;
-//     };
-// };
-
-// export type TPoolCard = {
-//     amount: string;
-//     microGrant: {
-//         allocationStartTime: string;
-//         allocationEndTime: string;
-//         approvalThreshold: string;
-//         maxRequestedAmount: string;
-//     };
-//     metadataPointer: string;
-//     metadata?: {
-//         profileId: string;
-//         name: string;
-//         website: string;
-//         description: string;
-//         image: { data: string };
-//     };
-//     poolId: string;
-// };
-
 export type TMicroGrantClientSide = {
     allocationStartTime: string;
     allocationEndTime: string;
@@ -355,6 +292,13 @@ export enum EPoolStatus {
     ENDED = "Ended",
 }
 
+export enum EApplicationStatus {
+    ACCEPTED = "Accepted",
+    REJECTED = "Rejected",
+    PENDING = "Pending",
+    PAID = "Paid",
+}
+
 export type TActivity = {
     id: number;
     status: string;
@@ -373,23 +317,23 @@ export type TFlyoutOptions = {
 };
 
 export type TProfilesByOwnerResponse = {
-    profileId: string;
+    profileId: `0x${string}`;
     name: string;
-    owner: string;
+    owner: `0x${string}`;
     createdAt: string;
-    anchor: string;
+    anchor: `0x${string}`;
     metadataPointer: string;
     metadata?: { [key: string]: string };
 };
 
 export type TProfileResponse = {
-    profileId: string;
+    profileId: `0x${string}`;
     nonce: number;
     name: string;
     metadataPointer: string;
-    owner: string;
-    anchor: string;
-    creator: string;
+    owner: `0x${string}`;
+    anchor: `0x${string}`;
+    creator: `0x${string}`;
     createdAt: string;
 };
 

@@ -53,7 +53,7 @@ export default function ImageUpload(props: {
             >
                 Banner Image
             </label>
-            <div className="mt-2 flex flex-col items-center justify-center border border-dashed border-color-300 px-6 py-10">
+            <div className="mt-2 flex flex-col items-center justify-center border-2 border-dashed border-color-300 px-6 py-10">
                 {!(preview !== "" || props.previewImage) && (
                     <PhotoIcon
                         className="mx-auto h-12 w-12 text-gray-300"

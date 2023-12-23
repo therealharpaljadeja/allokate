@@ -26,15 +26,6 @@ const createPoolSchema = object({
     description: string().required().min(10, "Must be atleast 10 words"),
     fundAmount: string().required(),
     grantAmount: string().required(),
-    // .when(
-    //     "fundAmount",
-    //     (fundAmount, schema) =>
-    //         fundAmount &&
-    //         schema.max(
-    //             fundAmount,
-    //             "Grant Amount should always be less than Fund Amount"
-    //         )
-    // ),
     threshold: number().positive().required(),
     startDate: date().required(),
     endDate: date()
@@ -49,11 +40,12 @@ const createPoolSchema = object({
 
 export default function CreatePool() {
     const [base64Image, setBase64Image] = useState<string>("");
+    const [creatingPool, setCreatingPool] = useState(false);
     const { chain } = useNetwork();
     const { data: client } = useWalletClient();
     const publicClient = usePublicClient();
 
-    const { profile } = useContext(RootContext);
+    const context = useContext(RootContext);
 
     const {
         register,
@@ -63,6 +55,10 @@ export default function CreatePool() {
     } = useForm({
         resolver: yupResolver(createPoolSchema),
     });
+
+    if (!context) return <Text className="text-[24px]">Loading...</Text>;
+
+    let { profile } = context;
 
     if (!profile) return <Text className="text-[24px]">Loading...</Text>;
 
@@ -112,6 +108,7 @@ export default function CreatePool() {
     }
 
     async function createPool(data: any) {
+        setCreatingPool(true);
         let ipfsUploadToast = toast.loading("Uploading Metadata to IPFS");
 
         // Upload pool metadata to IPFS
@@ -145,6 +142,7 @@ export default function CreatePool() {
         } catch (e) {
             toast.error("Something went wrong", { id: ipfsUploadToast });
             console.log("IPFS", e);
+            setCreatingPool(false);
         }
 
         // Deploy Strategy
@@ -189,7 +187,9 @@ export default function CreatePool() {
 
                 initStrategyData = await strategy.getInitializeData(initParams);
 
-                const poolCreationData = {
+                let poolCreationData;
+
+                poolCreationData = {
                     profileId: profileId,
                     strategy: strategyAddress,
                     initStrategyData: initStrategyData,
@@ -199,11 +199,14 @@ export default function CreatePool() {
                         protocol: BigInt(1),
                         pointer: pointer.IpfsHash,
                     },
-                    managers: [profile.owner],
+                    managers: [(profile as any).owner as `0x${string}`],
                 };
 
                 console.log(poolCreationData);
-                const createPoolData = await allo.createPoolWithCustomStrategy(
+
+                let createPoolData;
+
+                createPoolData = await allo.createPoolWithCustomStrategy(
                     poolCreationData
                 );
 
@@ -256,9 +259,11 @@ export default function CreatePool() {
                         id: createPoolToast,
                     });
                     console.log(error);
+                    setCreatingPool(false);
                 }
             }
         }
+        setCreatingPool(false);
     }
 
     return (
@@ -433,7 +438,7 @@ export default function CreatePool() {
 
                 <div></div>
                 <div className="flex justify-end w-full">
-                    <Button>Create</Button>
+                    <Button isLoading={creatingPool}>Create</Button>
                 </div>
             </form>
         </div>

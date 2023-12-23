@@ -9,15 +9,28 @@ import { useEffect, useState } from "react";
 import Text from "../../components/Text";
 import SideTable from "../../components/SideTable";
 import Link from "next/link";
-import { getPoolsByProfileId, getProfileById } from "@/src/utils/request";
-import { TPoolClientSide, TProfileClientSide } from "@/src/utils/types";
+import {
+    getMicroGrantRecipientBySender,
+    getPoolsByProfileId,
+    getProfileById,
+} from "@/src/utils/request";
+import {
+    TMicroGrantRecipientClientSide,
+    TPoolClientSide,
+    TProfileClientSide,
+} from "@/src/utils/types";
 import PoolsGrid from "../../components/PoolsGrid";
 import { useNetwork } from "wagmi";
+import ApplicationGrid from "@/app/components/ApplicationGrid";
 
 export default function Me({ params }: { params: { id: string } }) {
     const [pools, setPools] = useState<TPoolClientSide[] | undefined>(
         undefined
     );
+    const [applications, setApplications] = useState<
+        TMicroGrantRecipientClientSide[] | undefined
+    >();
+
     const [profile, setProfile] = useState<TProfileClientSide>();
 
     const { chain } = useNetwork();
@@ -39,9 +52,14 @@ export default function Me({ params }: { params: { id: string } }) {
     useEffect(() => {
         if (profile) {
             (async () => {
-                console.log(profile.profileId);
                 let pools = await getPoolsByProfileId(profile.profileId);
                 setPools(pools);
+
+                let applications = await getMicroGrantRecipientBySender(
+                    profile.owner
+                );
+
+                setApplications(applications);
             })();
         }
     }, [profile]);
@@ -108,11 +126,17 @@ export default function Me({ params }: { params: { id: string } }) {
                                 title="Pools"
                                 count={pools ? pools.length : 0}
                             />
-                            <CustomTab title="Applications" count={12} />
+                            <CustomTab
+                                title="Applications"
+                                count={applications ? applications.length : 0}
+                            />
                         </Tab.List>
                         <Tab.Panels>
                             <Tab.Panel className="w-full grid grid-cols-2 gap-x-4 gap-y-4 mt-4">
                                 <PoolsGrid pools={pools} />
+                            </Tab.Panel>
+                            <Tab.Panel className="w-full grid grid-cols-2 gap-x-4 gap-y-4 mt-4">
+                                <ApplicationGrid applications={applications} />
                             </Tab.Panel>
                         </Tab.Panels>
                     </Tab.Group>
