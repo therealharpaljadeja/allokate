@@ -60,7 +60,7 @@ export default function RootClientComponent({
                     }}
                 />
                 <RootContextProvider>
-                    <main className="flex min-h-screen min-w-[1280px] space-y-[40px] flex-col items-center px-[60px] py-[80px] max-w-[1280px]">
+                    <main className="flex min-h-screen min-w-[1280px] space-y-[40px] flex-col items-center px-[60px] py-[30px] max-w-[1280px]">
                         <div className="flex w-[100%] justify-between items-center">
                             <div>
                                 <Link href={"/"}>

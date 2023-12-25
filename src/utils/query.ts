@@ -166,12 +166,7 @@ export const getMicroGrantRecipientQuery = gql`
             poolId: $poolId
             recipientId: $recipientId
         ) {
-            microGrant {
-                allocationStartTime
-                allocationEndTime
-                maxRequestedAmount
-                blockTimestamp
-            }
+            recipientId
             sender
             recipientAddress
             requestedAmount
@@ -179,6 +174,36 @@ export const getMicroGrantRecipientQuery = gql`
             blockTimestamp
             isUsingRegistryAnchor
             status
+            microGrant {
+                allocationStartTime
+                allocationEndTime
+                maxRequestedAmount
+                blockTimestamp
+                poolId
+                chainId
+                approvalThreshold
+                pool {
+                    token
+                    tokenMetadata
+                    strategy
+                }
+                allocateds {
+                    recipientId
+                    status
+                    sender
+                    blockTimestamp
+                    transactionHash
+                }
+                distributeds {
+                    recipientId
+                    amount
+                    sender
+                    contractName
+                    contractAddress
+                    blockTimestamp
+                    transactionHash
+                }
+            }
         }
     }
 `;

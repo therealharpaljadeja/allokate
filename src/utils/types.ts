@@ -5,7 +5,7 @@ export type TStrategyType = keyof typeof StrategyType;
 export type TokenMetadata = {
     name: string;
     symbol: string;
-    decimals: string;
+    decimals: number;
 };
 
 export type TProfileRaw = {
@@ -68,13 +68,7 @@ export type TProfileMetadata = {
 };
 
 export type TMicroGrantRecipientByAppIdRaw = {
-    microGrant: Pick<
-        TMicroGrantRaw,
-        | "allocationStartTime"
-        | "allocationEndTime"
-        | "blockTimestamp"
-        | "maxRequestedAmount"
-    >;
+    recipientId: `0x${string}`;
     sender: `0x${string}`;
     recipientAddress: `0x${string}`;
     requestedAmount: string;
@@ -82,12 +76,32 @@ export type TMicroGrantRecipientByAppIdRaw = {
     blockTimestamp: string;
     isUsingRegistryAnchor: boolean;
     status: EApplicationStatus;
+    microGrant: Pick<
+        TMicroGrantRaw,
+        | "allocationStartTime"
+        | "allocationEndTime"
+        | "maxRequestedAmount"
+        | "blockTimestamp"
+        | "poolId"
+        | "approvalThreshold"
+    > & {
+        pool: Pick<TPoolRaw, "token" | "tokenMetadata" | "strategy">;
+        chainId: string;
+        allocateds: TAllocatedData[];
+        distributeds: TDistributedData[];
+    };
 };
 
 export type TMicroGrantRecipientByAppIdClientSide = Omit<
     TMicroGrantRecipientByAppIdRaw,
     "metadataPointer"
-> & { metadata?: TApplicationMetadataClientSide };
+> & {
+    metadata?: TApplicationMetadataClientSide;
+    allocateds: TAllocatedData[];
+    distributeds: TDistributedData[];
+    approvals: TAllocatedData[];
+    rejections: TAllocatedData[];
+};
 
 export type TApplicationMetadataRaw = {
     name: string;

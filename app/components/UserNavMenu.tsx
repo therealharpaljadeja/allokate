@@ -31,9 +31,11 @@ export default function UserNavMenu() {
                 ) : null}
             </Link>
             <Link href={`/profile/${profile?.profileId}`}>
-                <Title className="hover:underline italic text-[20px]">
-                    Dashboard
-                </Title>
+                {profile ? (
+                    <Title className="hover:underline italic text-[20px]">
+                        Dashboard
+                    </Title>
+                ) : null}
             </Link>
         </div>
     );

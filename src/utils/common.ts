@@ -1,6 +1,7 @@
 import {
     TransactionReceipt,
     decodeEventLog,
+    formatUnits,
     keccak256,
     stringToBytes,
 } from "viem";
@@ -8,6 +9,10 @@ import { AbiItem, AbiComponent, ContractAbi, EPoolStatus } from "./types";
 
 export const extractLogByEventName = (logs: any[], eventName: string) => {
     return logs.find((log) => log.eventName === eventName);
+};
+
+export const getAddressExplorerLink = (address: `0x${string}`) => {
+    return `https://sepolia.arbiscan.io/address/${address}`;
 };
 
 export const getEventValues = (
@@ -90,3 +95,51 @@ export const getPoolStatus = (
         return EPoolStatus.ACTIVE;
     }
 };
+
+export const formatDateDifference = (dateString: string): string => {
+    const currentDate = new Date();
+    const inputDate = new Date(dateString);
+    const timeDifference = currentDate.getTime() - inputDate.getTime();
+    const secondsDifference = Math.floor(timeDifference / 1000);
+    const minutesDifference = Math.floor(secondsDifference / 60);
+    const hoursDifference = Math.floor(minutesDifference / 60);
+    const daysDifference = Math.floor(hoursDifference / 24);
+
+    if (secondsDifference < 60) {
+        return "now";
+    } else if (minutesDifference < 60) {
+        return `${minutesDifference}m ago`;
+    } else if (hoursDifference < 24) {
+        return `${hoursDifference}h ago`;
+    } else {
+        return `${daysDifference}d ago`;
+    }
+};
+
+export const prettyTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+
+    return `${date.toLocaleDateString()}`;
+};
+
+export const convertAddressToShortString = (address: string) => {
+    return address.slice(0, 6) + "..." + address.slice(-4);
+};
+
+export const getTxnExplorerLink = (hash: string) => {
+    return `https://sepolia.arbiscan.io/tx/${hash}`;
+};
+
+export function humanReadableAmount(amount: string, decimals?: number) {
+    const amountInUnits = Number(formatUnits(BigInt(amount), decimals || 18));
+
+    for (let i = 5; i <= 15; i++) {
+        const formattedValue = amountInUnits.toFixed(i);
+        if (Number(formattedValue) !== 0) {
+            return formattedValue.replace(/\.?0+$/, ""); // Remove trailing zeros
+        }
+    }
+    return 0;
+}
+
+export const ethereumAddressRegExp = /^(0x)?[0-9a-fA-F]{40}$/;

@@ -78,7 +78,7 @@ export default function Apply({ params }: { params: { id: string } }) {
                         "Cannot request more than the Max Allocation Amount"
                     )
                     .default(0),
-                recipientAddress: string(),
+                recipientAddress: string().required(),
             });
 
             setRegisterRecipientSchema(registerRecipientSchema as any);

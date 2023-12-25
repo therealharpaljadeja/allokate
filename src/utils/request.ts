@@ -33,6 +33,7 @@ import {
 } from "./query";
 import request from "graphql-request";
 import { getIPFSClient } from "@/src/services/ipfs";
+import { Status } from "@allo-team/allo-v2-sdk/dist/strategies/types";
 
 const getProfilesByOwner = async ({
     chainId,
@@ -140,7 +141,23 @@ export const getApplicationData = async (
             result.metadata.image = bannerImage;
         }
 
-        result = { ...result, ...application };
+        result.allocateds = application.microGrant.allocateds.filter(
+            (allocated) => allocated.recipientId === applicationId
+        );
+
+        result.distributeds = application.microGrant.distributeds.filter(
+            (distributed) => distributed.recipientId === applicationId
+        );
+
+        result.approvals = result.allocateds.filter(
+            (allocated) => allocated.status === Status.Accepted.toString()
+        );
+
+        result.rejections = result.allocateds.filter(
+            (allocated) => allocated.status === Status.Rejected.toString()
+        );
+
+        result = { ...application, ...result };
 
         return result;
     } catch (error) {
