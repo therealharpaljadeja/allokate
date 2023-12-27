@@ -5,7 +5,7 @@ import { Tab } from "@headlessui/react";
 import CustomTab from "../../components/CustomTab";
 import Address from "../../components/Address";
 import Avatar from "../../components/Avatar";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Text from "../../components/Text";
 import SideTable from "../../components/SideTable";
 import Link from "next/link";
@@ -20,13 +20,18 @@ import {
     TProfileClientSide,
 } from "@/src/utils/types";
 import PoolsGrid from "../../components/PoolsGrid";
-import { useNetwork } from "wagmi";
+import { useAccount, useNetwork } from "wagmi";
 import ApplicationGrid from "@/app/components/ApplicationGrid";
+import { RootContext } from "@/app/context/RootContext";
+import { ProfileAndAddressArgs } from "@allo-team/allo-v2-sdk/dist/Registry/types";
+import { Registry } from "@allo-team/allo-v2-sdk";
+import ProfileMemberForm from "@/app/components/ProfileMemberForm";
 
 export default function Me({ params }: { params: { id: string } }) {
     const [pools, setPools] = useState<TPoolClientSide[] | undefined>(
         undefined
     );
+    const [isProfileOwner, setIsProfileOwner] = useState(false);
     const [applications, setApplications] = useState<
         TMicroGrantRecipientClientSide[] | undefined
     >();
@@ -34,6 +39,7 @@ export default function Me({ params }: { params: { id: string } }) {
     const [profile, setProfile] = useState<TProfileClientSide>();
 
     const { chain } = useNetwork();
+    const { address } = useAccount();
     let { id } = params;
 
     useEffect(() => {
@@ -45,6 +51,20 @@ export default function Me({ params }: { params: { id: string } }) {
                 });
 
                 setProfile(profile);
+
+                let registry = new Registry({
+                    chain: 421614,
+                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                });
+
+                const profileAndAddressArgs: ProfileAndAddressArgs = {
+                    profileId: id,
+                    account: address as string,
+                };
+                const isOwner: boolean = await registry.isOwnerOfProfile(
+                    profileAndAddressArgs
+                );
+                setIsProfileOwner(isOwner);
             }
         })();
     }, []);
@@ -130,6 +150,9 @@ export default function Me({ params }: { params: { id: string } }) {
                                 title="Applications"
                                 count={applications ? applications.length : 0}
                             />
+                            {isProfileOwner && (
+                                <CustomTab title="Manage Profile" />
+                            )}
                         </Tab.List>
                         <Tab.Panels>
                             <Tab.Panel className="w-full grid grid-cols-2 gap-x-4 gap-y-4 mt-4">
@@ -137,6 +160,9 @@ export default function Me({ params }: { params: { id: string } }) {
                             </Tab.Panel>
                             <Tab.Panel className="w-full grid grid-cols-2 gap-x-4 gap-y-4 mt-4">
                                 <ApplicationGrid applications={applications} />
+                            </Tab.Panel>
+                            <Tab.Panel>
+                                <ProfileMemberForm />
                             </Tab.Panel>
                         </Tab.Panels>
                     </Tab.Group>
