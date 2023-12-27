@@ -23,6 +23,7 @@ import Button from "./Button";
 import SideTable from "./SideTable";
 import { PoolContext } from "../context/PoolContext";
 import PoolAllocatorForm from "./PoolAllocatorForm";
+import { MarkdownView } from "./Markdown";
 
 const statusColorScheme = {
     [EPoolStatus.ACTIVE]:
@@ -103,7 +104,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
             label: "Profile Id",
             value: (
                 <Link className="underline" href={`/profile/${pool.profileId}`}>
-                    {sliceAddress(pool.profileId as `0x${string}`)}
+                    {sliceAddress(pool.profileId as `0x${string}`, 6)}
                 </Link>
             ),
         },
@@ -170,7 +171,9 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                                     <Title className="text-[28px] italic">
                                         {pool.metadata.name}
                                     </Title>
-                                    <p>{pool.metadata.description}</p>
+                                    <MarkdownView
+                                        text={pool.metadata.description}
+                                    />
                                 </div>
                             </Tab.Panel>
                             <Tab.Panel className="w-full grid grid-cols-2 gap-x-4 gap-y-4 mt-4">

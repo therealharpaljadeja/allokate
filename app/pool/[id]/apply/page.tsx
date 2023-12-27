@@ -12,6 +12,7 @@ import { getPoolByPoolId } from "@/src/utils/request";
 import { TPoolClientSide } from "@/src/utils/types";
 import { MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -43,6 +44,7 @@ export default function Apply({ params }: { params: { id: string } }) {
     const [pool, setPool] = useState<TPoolClientSide | null>(null);
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
+    const router = useRouter();
 
     let { id } = params;
 
@@ -95,7 +97,9 @@ export default function Apply({ params }: { params: { id: string } }) {
 
     if (!pool) return <Text className="text-[24px]">Loading...</Text>;
 
-    let { profileId, name } = profile;
+    let { profileId, name, anchor } = profile;
+
+    console.log("Anchor", anchor);
 
     async function registerRecipient(data: any) {
         setRegisteringRecipient(true);
@@ -130,7 +134,7 @@ export default function Apply({ params }: { params: { id: string } }) {
                 });
 
                 const registerData = {
-                    registryAnchor: profile.anchor,
+                    registryAnchor: anchor,
                     recipientAddress: data.recipientAddress,
                     requestedAmount: parseEther(data.requestAmount.toString()),
                     metadata: {
@@ -141,7 +145,7 @@ export default function Apply({ params }: { params: { id: string } }) {
 
                 let strategy = new MicroGrantsStrategy({
                     chain: 421614,
-                    rpc: "https://sepolia-rollup.arbitrum.io/rpc",
+                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
                     poolId: Number(pool.id),
                 });
 
@@ -169,6 +173,8 @@ export default function Apply({ params }: { params: { id: string } }) {
                         toast.success("Application Submitted", {
                             id: registeringRecipientToast,
                         });
+
+                        router.push(`/pool/${pool.id}`);
                     } else {
                         toast.error("Error registering recipient", {
                             id: registeringRecipientToast,

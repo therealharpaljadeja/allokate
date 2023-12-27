@@ -4,13 +4,18 @@ import Link from "next/link";
 
 type AddressProps = {
     inputAddress?: string;
+    noOfCharacters?: number;
 };
 
-export function sliceAddress(address: string) {
-    if (address) return `${address.slice(0, 5)}...${address.slice(-4)}`;
+export function sliceAddress(address: string, sliceBy: number) {
+    if (address)
+        return `${address.slice(0, sliceBy)}...${address.slice(sliceBy * -1)}`;
 }
 
-export default function Address({ inputAddress }: AddressProps) {
+export default function Address({
+    inputAddress,
+    noOfCharacters = 5,
+}: AddressProps) {
     const { address } = useAccount();
 
     return (
@@ -22,7 +27,8 @@ export default function Address({ inputAddress }: AddressProps) {
         >
             <Text className="text-[16px] underline">
                 {sliceAddress(
-                    inputAddress ? inputAddress : (address as string)
+                    inputAddress ? inputAddress : (address as string),
+                    noOfCharacters
                 )}
             </Text>
         </Link>

@@ -56,9 +56,10 @@ export const PoolContextProvider = (props: {
     useEffect(() => {
         const checkAllocator = async () => {
             if (isConnected && address) {
+                console.log("Checking allocator...");
                 const allo = new Allo({
                     chain: Number(chain?.id),
-                    rpc: "https://sepolia-rollup.arbitrum.io/rpc",
+                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
                 });
 
                 const _isPoolManager = await allo.isPoolManager(
@@ -73,7 +74,7 @@ export const PoolContextProvider = (props: {
                     chain: Number(chain?.id),
                     address: strategy as `0x${string}`,
                     poolId: Number(props.poolId),
-                    rpc: "https://sepolia-rollup.arbitrum.io/rpc",
+                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
                 });
 
                 setStrategy(microGrants);

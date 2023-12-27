@@ -14,6 +14,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import Text from "@/app/components/Text";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const createProfileSchema = object({
     name: string().required(),
@@ -26,6 +27,7 @@ export default function CreateProfile() {
     const { address } = useAccount();
     const { data: client } = useWalletClient();
     const publicClient = usePublicClient();
+    const router = useRouter();
 
     const [creatingProfile, setCreatingProfile] = useState(false);
 
@@ -52,7 +54,7 @@ export default function CreateProfile() {
 
         const registry = new Registry({
             chain: 421614,
-            rpc: "https://sepolia-rollup.arbitrum.io/rpc",
+            rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
         });
 
         if (client) {
@@ -102,7 +104,7 @@ export default function CreateProfile() {
                 }
                 setCreatingProfile(false);
                 // Client could be from ethers, viem, etc..
-                console.log(`Transaction: ${transaction}`);
+                router.push("/");
             } catch (error) {
                 toast.error("Something went wrong", {
                     id: createProfileToast,

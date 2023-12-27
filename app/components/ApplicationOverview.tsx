@@ -1,4 +1,7 @@
-import { getApplicationData } from "@/src/utils/request";
+import {
+    getApplicationData,
+    getProfileOwnerAndMembersByAnchor,
+} from "@/src/utils/request";
 import {
     EApplicationStatus,
     TActivity,
@@ -16,8 +19,6 @@ import {
     humanReadableAmount,
     prettyTimestamp,
 } from "@/src/utils/common";
-import { Preview } from "react-mde";
-import ReactMarkdown from "react-markdown";
 import { formatEther } from "viem";
 import { formatDateAsDDMMYYYY } from "./ApplicationGrid";
 import SideTable from "./SideTable";
@@ -28,6 +29,9 @@ import Button from "./Button";
 import { Allocation } from "@allo-team/allo-v2-sdk/dist/strategies/MicroGrantsStrategy/types";
 import { Status } from "@allo-team/allo-v2-sdk/dist/strategies/types";
 import toast from "react-hot-toast";
+import { MarkdownView } from "./Markdown";
+import Avatar from "./Avatar";
+import Address from "./Address";
 
 const statusColorScheme = {
     [EApplicationStatus.ACCEPTED]:
@@ -53,6 +57,10 @@ export default function ApplicationOverview({
     const { isAllocator, allocate } = useContext(PoolContext);
     const { address } = useAccount();
     const [isLoading, setIsLoading] = useState(false);
+    const [applicationOwnerAndMembers, setApplicationOwnerAndMembers] =
+        useState<
+            { owner: `0x${string}`; members: `0x${string}`[] } | undefined
+        >(undefined);
 
     useEffect(() => {
         (async () => {
@@ -60,6 +68,18 @@ export default function ApplicationOverview({
             setApplication(application);
         })();
     }, []);
+
+    useEffect(() => {
+        if (application) {
+            (async () => {
+                let OwnerAndmembers = await getProfileOwnerAndMembersByAnchor(
+                    application.recipientId
+                );
+
+                setApplicationOwnerAndMembers(OwnerAndmembers);
+            })();
+        }
+    }, [application]);
 
     if (!application)
         return <Text className="font-WorkSans text-[24px]">Loading...</Text>;
@@ -88,8 +108,6 @@ export default function ApplicationOverview({
             dateTime: prettyTimestamp(Number(application.blockTimestamp)),
         };
 
-        console.log(application.blockTimestamp);
-
         const applicationRegisteredActivity: TActivity = {
             id: 2,
             status: "none",
@@ -103,10 +121,10 @@ export default function ApplicationOverview({
         activity.push(poolCreatedActivity, applicationRegisteredActivity);
 
         // allocation activity
-        application.allocateds.forEach((allocated) => {
+        application.allocateds.forEach((allocated, index) => {
             const status = allocated.status === "2" ? "Approved" : "Rejected";
             const allocatedActivity: TActivity = {
-                id: activity.length,
+                id: index + 3,
                 status: status,
                 textBold: convertAddressToShortString(allocated.sender),
                 href: getTxnExplorerLink(allocated.transactionHash),
@@ -118,9 +136,9 @@ export default function ApplicationOverview({
         });
 
         // distribution activity
-        application.distributeds.forEach((distributed) => {
+        application.distributeds.forEach((distributed, index) => {
             const distributedActivity: TActivity = {
-                id: activity.length,
+                id: index + 3 + application.allocateds.length,
                 status: "Completed",
                 textBold: `${humanReadableAmount(
                     distributed.amount,
@@ -254,17 +272,8 @@ export default function ApplicationOverview({
                         </div>
                     </div>
                     <div className="flex w-full">
-                        <Preview
-                            minHeight={200}
-                            heightUnits="px"
-                            markdown=""
-                            generateMarkdownPreview={() =>
-                                Promise.resolve(
-                                    <ReactMarkdown>
-                                        {application.metadata?.description}
-                                    </ReactMarkdown>
-                                )
-                            }
+                        <MarkdownView
+                            text={application.metadata?.description ?? ""}
                         />
                     </div>
                 </div>
@@ -296,7 +305,40 @@ export default function ApplicationOverview({
                         title="Application Details"
                         items={SideTableItems}
                     />
-                    <SideTable title="Project Members" items={[]} />
+                    {applicationOwnerAndMembers && (
+                        <div className="w-full col-span-2 flex flex-col border border-color-400 px-6 py-4">
+                            <Title className="text-[20px] mb-6">
+                                Project Members
+                            </Title>
+                            <div className="flex w-full flex-col space-y-4">
+                                <div className="flex flex-col space-y-2">
+                                    <Title className="text-[16px]">Owner</Title>
+                                    <Address
+                                        inputAddress={
+                                            applicationOwnerAndMembers.owner
+                                        }
+                                        noOfCharacters={15}
+                                    />
+                                </div>
+                                <div className="flex flex-col space-y-2">
+                                    <Title className="text-[16px]">
+                                        Members
+                                    </Title>
+                                    {applicationOwnerAndMembers.members.map(
+                                        (member, index) => {
+                                            return (
+                                                <Address
+                                                    key={index}
+                                                    inputAddress={member}
+                                                    noOfCharacters={15}
+                                                />
+                                            );
+                                        }
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <ApplicationActivity activity={generateActivity()} />
                 </div>
             </div>

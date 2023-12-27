@@ -13,6 +13,7 @@ import { getEventValues } from "@/src/utils/common";
 import { Allo, MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
 import { StrategyType } from "@allo-team/allo-v2-sdk/dist/strategies/MicroGrantsStrategy/types";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -46,6 +47,7 @@ export default function CreatePool() {
     const publicClient = usePublicClient();
 
     const context = useContext(RootContext);
+    const router = useRouter();
 
     const {
         register,
@@ -70,7 +72,7 @@ export default function CreatePool() {
 
             let strategy = new MicroGrantsStrategy({
                 chain: chain?.id,
-                rpc: "https://sepolia-rollup.arbitrum.io/rpc",
+                rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
             });
 
             let strategyAddress: string = "0x";
@@ -149,14 +151,8 @@ export default function CreatePool() {
         if (chain) {
             const allo = new Allo({
                 chain: chain?.id,
-                rpc: "https://sepolia-rollup.arbitrum.io/rpc",
+                rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
             });
-
-            // let strategy = new MicroGrantsStrategy({
-            //     chain: chain?.id,
-            //     rpc: "https://sepolia-rollup.arbitrum.io/rpc",
-            // });
-            // let strategyAddress = "0x9b66d55d0a737e0f9d08f2d56436d9a6d512e4bf";
 
             let result = await deployStrategy();
 
@@ -252,7 +248,7 @@ export default function CreatePool() {
                             id: createPoolToast,
                         });
 
-                        console.log(poolId, strategyAddress);
+                        router.push(`/profile/${profileId}`);
                     }
                 } catch (error) {
                     toast.error("Something went wrong", {
@@ -336,7 +332,12 @@ export default function CreatePool() {
                     )}
                 </div>
 
-                <div></div>
+                <div className="flex w-full flex-col space-y-4">
+                    <ImageUpload
+                        setBase64Image={setBase64Image}
+                        previewImage={base64Image || undefined}
+                    />
+                </div>
 
                 <div className="flex w-full flex-col space-y-4">
                     <label htmlFor="fundAmount" className="text-[16px]">
@@ -420,22 +421,13 @@ export default function CreatePool() {
                     <label className="text-[16px]">
                         Is a registry profile mandatory for applicants?
                     </label>
-                    {/* <input
-                        className="px-4 py-2 bg-color-500 border-2 border-color-400 text-color-100"
-                        placeholder="https://exam`ple.com"
-                    /> */}
+
                     <div className="border-2 text-color-400 border-color-400 px-4 py-2">
                         <Text>Yes</Text>
                     </div>
                 </div>
 
-                <div className="flex w-full flex-col space-y-4">
-                    <ImageUpload
-                        setBase64Image={setBase64Image}
-                        previewImage={base64Image || undefined}
-                    />
-                </div>
-
+                <div></div>
                 <div></div>
                 <div className="flex justify-end w-full">
                     <Button isLoading={creatingPool}>Create</Button>

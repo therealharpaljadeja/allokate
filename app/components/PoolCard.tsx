@@ -40,7 +40,7 @@ export default function PoolCard({
                         {shortDescription}
                     </p>
                 </div>
-                <div className="flex justify-between w-full">
+                <div className="flex justify-between w-full space-x-4">
                     <div className="flex flex-col space-y-2">
                         <h3 className="text-[20px] font-SpaceMono">{`${maxAllocation}/${amount} ETH`}</h3>
                         <p className="font-WorkSans">Max Allocation / Amount</p>
