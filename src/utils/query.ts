@@ -353,3 +353,14 @@ export const getAnchors = gql`
         }
     }
 `;
+
+export const getProfilesQuery = gql`
+    query getProfilesQuery {
+        profiles {
+            name
+            profileId
+            chainId
+            createdAt
+        }
+    }
+`;

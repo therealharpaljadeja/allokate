@@ -5,7 +5,7 @@ import { Tab } from "@headlessui/react";
 import CustomTab from "../../components/CustomTab";
 import Address from "../../components/Address";
 import Avatar from "../../components/Avatar";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Text from "../../components/Text";
 import SideTable from "../../components/SideTable";
 import Link from "next/link";

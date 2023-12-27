@@ -2,10 +2,10 @@
 
 import {
     EPoolStatus,
-    TApplicationData,
     TApplicationMetadataRaw,
     TDistributedData,
     TGetPoolsByProfileId,
+    TGetProfilesClientSide,
     TMicroGrantRaw,
     TMicroGrantRecipientByAppIdClientSide,
     TMicroGrantRecipientByAppIdRaw,
@@ -30,6 +30,7 @@ import {
     getPoolsByProfileIdQuery,
     getProfileQuery,
     getProfilesByOwnerQuery,
+    getProfilesQuery,
     getTotalAmountDistributedQuery,
     getTotalProfilesQuery,
     getUpcomingMicroGrantsQuery,
@@ -444,6 +445,22 @@ export async function getTotalAmountDistributed() {
     }
 
     return result;
+}
+
+export async function getProfiles() {
+    let { profiles }: { profiles: TGetProfilesClientSide[] } = await request(
+        graphqlEndpoint,
+        getProfilesQuery,
+        {}
+    );
+
+    let profilesOnArbitrumSepolia = profiles.filter(
+        (profile) => profile.chainId === "421614"
+    );
+
+    return profilesOnArbitrumSepolia.sort((profileA, profileB) =>
+        profileA.createdAt > profileB.createdAt ? -1 : 1
+    );
 }
 
 export async function getTotalProfiles() {

@@ -16,6 +16,11 @@ export default function UserNavMenu() {
 
     return (
         <div className="flex items-center space-x-4">
+            <Link href="/explore">
+                <Title className="hover:underline italic text-[20px]">
+                    Explore Profiles
+                </Title>
+            </Link>
             <Link href="/create/profile">
                 {profile ? null : (
                     <Title className="hover:underline italic text-[20px]">

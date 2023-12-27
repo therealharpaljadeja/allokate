@@ -403,3 +403,8 @@ export type AbiItem = {
 };
 
 export type ContractAbi = Array<AbiItem>;
+
+export type TGetProfilesClientSide = Pick<
+    TProfileResponse,
+    "name" | "profileId" | "createdAt"
+> & { chainId: string };
