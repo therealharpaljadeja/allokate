@@ -313,3 +313,37 @@ export const getMicroGrantRecipientsBySenderQuery = gql`
         }
     }
 `;
+
+export const getTotalAmountDistributedQuery = gql`
+    query getTotalAmountDistributedQuery {
+        microGrants(condition: { chainId: "421614" }) {
+            distributeds {
+                amount
+            }
+        }
+    }
+`;
+
+export const getTotalProfilesQuery = gql`
+    query getTotalProfilesQuery {
+        profiles {
+            chainId
+        }
+    }
+`;
+
+export const getAnchors = gql`
+    query getAnchors {
+        profiles {
+            chainId
+            anchor
+            owner
+            role {
+                roleAccounts {
+                    isActive
+                    accountId
+                }
+            }
+        }
+    }
+`;

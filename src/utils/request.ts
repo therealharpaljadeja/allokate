@@ -4,6 +4,7 @@ import {
     EPoolStatus,
     TApplicationData,
     TApplicationMetadataRaw,
+    TDistributedData,
     TGetPoolsByProfileId,
     TMicroGrantRaw,
     TMicroGrantRecipientByAppIdClientSide,
@@ -21,6 +22,7 @@ import {
 } from "@/src/utils/types";
 import {
     getActiveMicroGrantsQuery,
+    getAnchors,
     getEndedMicroGrantsQuery,
     getMicroGrantRecipientQuery,
     getMicroGrantRecipientsBySenderQuery,
@@ -28,6 +30,8 @@ import {
     getPoolsByProfileIdQuery,
     getProfileQuery,
     getProfilesByOwnerQuery,
+    getTotalAmountDistributedQuery,
+    getTotalProfilesQuery,
     getUpcomingMicroGrantsQuery,
     graphqlEndpoint,
 } from "./query";
@@ -420,4 +424,71 @@ export async function getMicroGrantRecipientBySender(
     );
 
     return await microGrantRecipientsRawToClientSide(filtered);
+}
+
+export async function getTotalAmountDistributed() {
+    let {
+        microGrants,
+    }: { microGrants: { distributeds: TDistributedData[] }[] } = await request(
+        graphqlEndpoint,
+        getTotalAmountDistributedQuery,
+        {}
+    );
+
+    let result = "0";
+    for (let i = 0; i < microGrants.length; i++) {
+        microGrants[i].distributeds.forEach((distributed) => {
+            result = distributed.amount + result;
+        });
+    }
+
+    return result;
+}
+
+export async function getTotalProfiles() {
+    let { profiles }: { profiles: { chainId: string }[] } = await request(
+        graphqlEndpoint,
+        getTotalProfilesQuery,
+        {}
+    );
+
+    let result = profiles.filter(
+        (profile) => profile.chainId === "421614"
+    ).length;
+
+    return result;
+}
+
+export async function getProfileOwnerAndMembersByAnchor(
+    anchor: `0x${string}`
+): Promise<{ owner: `0x${string}`; members: `0x${string}`[] }> {
+    let {
+        profiles,
+    }: {
+        profiles: {
+            chainId: string;
+            anchor: `0x${string}`;
+            owner: `0x${string}`;
+            role: {
+                roleAccounts: { isActive: boolean; accountId: `0x${string}` }[];
+            };
+        }[];
+    } = await request(graphqlEndpoint, getAnchors, {});
+
+    let profile = profiles.filter(
+        (profile) => profile.chainId === "421614" && profile.anchor === anchor
+    )[0];
+
+    let memberAccounts = profile.role.roleAccounts.filter(
+        (account) => account.isActive
+    );
+
+    let members = memberAccounts.map(
+        (memberAccount) => memberAccount.accountId
+    );
+
+    return {
+        owner: profile.owner,
+        members,
+    };
 }
