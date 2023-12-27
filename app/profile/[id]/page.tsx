@@ -86,9 +86,10 @@ export default function Me({ params }: { params: { id: string } }) {
 
     if (!profile) return <Text className="text-[24px]">Loading...</Text>;
 
-    let { profileId, anchor, metadata, owner } = profile;
-
+    let { profileId, anchor, metadata, owner, role } = profile;
+    console.log(role);
     let { name, email, website, description } = metadata;
+    let { roleAccounts } = role;
 
     let SideTableItems = [
         {
@@ -162,7 +163,9 @@ export default function Me({ params }: { params: { id: string } }) {
                                 <ApplicationGrid applications={applications} />
                             </Tab.Panel>
                             <Tab.Panel>
-                                <ProfileMemberForm />
+                                <ProfileMemberForm
+                                    existingMembers={roleAccounts}
+                                />
                             </Tab.Panel>
                         </Tab.Panels>
                     </Tab.Group>

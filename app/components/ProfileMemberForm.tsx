@@ -27,7 +27,11 @@ const schema = yup.object().shape({
     action: yup.string().required().oneOf(["add", "remove"]),
 });
 
-export default function ProfileMemberForm() {
+export default function ProfileMemberForm({
+    existingMembers,
+}: {
+    existingMembers?: { isActive: boolean; accountId: `0x${string}` }[];
+}) {
     const context = useContext(RootContext);
     const [members, setMembers] = useState<`0x${string}`[] | string[]>([""]);
     const publicClient = usePublicClient();
@@ -88,7 +92,27 @@ export default function ProfileMemberForm() {
         <form className="w-full mt-6" onSubmit={handleSubmit(onHandleSubmit)}>
             <div className="space-y-4">
                 <div className="grid max-w-2xl grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-                    <div className="w-full sm:col-span-6">
+                    <div className="w-full flex flex-col space-y-4 sm:col-span-6">
+                        <div className="space-y-4 flex flex-col">
+                            <Title className="text-[24px] italic text-color-100">
+                                Existing Members
+                            </Title>
+                            <div>
+                                {existingMembers &&
+                                    existingMembers.map((member) => (
+                                        <div className="flex space-x-2 items-center">
+                                            <Text className="text-[20px]">
+                                                {member.accountId}
+                                            </Text>
+                                            <Text className="text-[16px]">
+                                                {member.isActive
+                                                    ? "Active"
+                                                    : "Inactive"}
+                                            </Text>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
                         <div className="px-4 sm:px-0">
                             <Title className="text-[24px] italic text-color-100">
                                 Manage Members

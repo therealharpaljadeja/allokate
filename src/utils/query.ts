@@ -232,6 +232,12 @@ export const getProfileQuery = gql`
             anchor
             creator
             createdAt
+            role {
+                roleAccounts {
+                    isActive
+                    accountId
+                }
+            }
         }
     }
 `;

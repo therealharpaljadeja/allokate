@@ -16,7 +16,7 @@ import { getPoolStatus } from "@/src/utils/common";
 import Text from "./Text";
 import Link from "next/link";
 import { sliceAddress } from "./Address";
-import { formatEther } from "viem";
+import { encodeFunctionData, formatEther } from "viem";
 import Title from "./Title";
 import ApplicationGrid from "./ApplicationGrid";
 import Button from "./Button";
@@ -24,6 +24,10 @@ import SideTable from "./SideTable";
 import { PoolContext } from "../context/PoolContext";
 import PoolAllocatorForm from "./PoolAllocatorForm";
 import { MarkdownView } from "./Markdown";
+import { MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
+import { StrategyType } from "@allo-team/allo-v2-sdk/dist/strategies/MicroGrantsStrategy/types";
+import { usePublicClient, useWalletClient } from "wagmi";
+import toast from "react-hot-toast";
 
 const statusColorScheme = {
     [EPoolStatus.ACTIVE]:
@@ -37,11 +41,14 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
     const [recipients, setRecipients] = useState<
         TMicroGrantRecipientClientSide[] | undefined
     >();
+    const [poolAmount, setPoolAmount] = useState<number | undefined>(0);
     const { isPoolManager, isAllocator } = useContext(PoolContext);
 
-    const [poolStatus, setPoolStatus] = useState<EPoolStatus>(
-        EPoolStatus.ENDED
+    const [poolStatus, setPoolStatus] = useState<EPoolStatus | undefined>(
+        undefined
     );
+    const { data: client } = useWalletClient();
+    const publicClient = usePublicClient();
 
     useEffect(() => {
         (async () => {
@@ -67,7 +74,72 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
         }
     }, [pool]);
 
-    if (!pool)
+    useEffect(() => {
+        if (pool && poolStatus === EPoolStatus.ENDED) {
+            (async () => {
+                const strategy = new MicroGrantsStrategy({
+                    chain: 421914,
+                    poolId: Number(poolId), // valid pool Id
+                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                });
+
+                strategy.setContract(pool.strategy as `0x${string}`);
+                let poolAmount = await strategy.getPoolAmount();
+                console.log(poolAmount);
+                setPoolAmount(poolAmount);
+            })();
+        }
+    }, [poolStatus]);
+
+    async function withdraw() {
+        if (pool) {
+            const strategy = new MicroGrantsStrategy({
+                chain: 421914,
+                poolId: Number(poolId), // valid pool Id
+                rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+            });
+
+            strategy.setContract(pool.strategy as `0x${string}`);
+            console.log(await strategy.getNative());
+            let withdrawingToast = toast.loading("Withdrawing...");
+
+            // Withdraw
+            try {
+                await client
+                    ?.sendTransaction({
+                        to: pool.strategy,
+                        data: "0x51cff8d9000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                    })
+                    .then(async (hash) => {
+                        let receipt =
+                            await publicClient.waitForTransactionReceipt({
+                                hash,
+                            });
+
+                        if (receipt.status == "success") {
+                            toast.success("Withdraw successful", {
+                                id: withdrawingToast,
+                            });
+                        } else {
+                            toast.error("Something went wrong", {
+                                id: withdrawingToast,
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        toast.error("Something went wrong", {
+                            id: withdrawingToast,
+                        });
+                    });
+            } catch (error) {
+                console.log(error);
+                toast.error("Something went wrong", { id: withdrawingToast });
+            }
+        }
+    }
+
+    if (pool === undefined || poolStatus === undefined)
         return <Text className="font-WorkSans text-[24px]">Loading...</Text>;
 
     if (!Object.keys(pool).length)
@@ -199,6 +271,9 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                     ) : (
                         <Button disabled={true}>Pool has closed</Button>
                     )}
+                    {poolAmount !== 0 ? (
+                        <Button onClick={withdraw}>Withdraw Funds</Button>
+                    ) : null}
                     <SideTable items={items} title="Pool Details" />
                 </div>
             </div>

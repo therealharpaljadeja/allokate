@@ -105,6 +105,7 @@ export const getProfileById = async ({
     result.nonce = profile.nonce;
     result.owner = profile.owner;
     result.profileId = profile.profileId;
+    result.role = profile.role;
 
     return result;
 };

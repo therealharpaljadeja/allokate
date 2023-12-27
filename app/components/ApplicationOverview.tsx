@@ -30,7 +30,6 @@ import { Allocation } from "@allo-team/allo-v2-sdk/dist/strategies/MicroGrantsSt
 import { Status } from "@allo-team/allo-v2-sdk/dist/strategies/types";
 import toast from "react-hot-toast";
 import { MarkdownView } from "./Markdown";
-import Avatar from "./Avatar";
 import Address from "./Address";
 
 const statusColorScheme = {
@@ -320,22 +319,24 @@ export default function ApplicationOverview({
                                         noOfCharacters={15}
                                     />
                                 </div>
-                                <div className="flex flex-col space-y-2">
-                                    <Title className="text-[16px]">
-                                        Members
-                                    </Title>
-                                    {applicationOwnerAndMembers.members.map(
-                                        (member, index) => {
-                                            return (
-                                                <Address
-                                                    key={index}
-                                                    inputAddress={member}
-                                                    noOfCharacters={15}
-                                                />
-                                            );
-                                        }
-                                    )}
-                                </div>
+                                {applicationOwnerAndMembers.members.length ? (
+                                    <div className="flex flex-col space-y-2">
+                                        <Title className="text-[16px]">
+                                            Members
+                                        </Title>
+                                        {applicationOwnerAndMembers.members.map(
+                                            (member, index) => {
+                                                return (
+                                                    <Address
+                                                        key={index}
+                                                        inputAddress={member}
+                                                        noOfCharacters={15}
+                                                    />
+                                                );
+                                            }
+                                        )}
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
                     )}

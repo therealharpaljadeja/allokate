@@ -349,6 +349,12 @@ export type TProfileResponse = {
     anchor: `0x${string}`;
     creator: `0x${string}`;
     createdAt: string;
+    role: {
+        roleAccounts: {
+            isActive: boolean;
+            accountId: `0x${string}`;
+        }[];
+    };
 };
 
 export type TProfileClientSide = Omit<TProfileResponse, "metadataPointer"> & {
