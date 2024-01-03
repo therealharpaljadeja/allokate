@@ -1,5 +1,5 @@
 import { createAvatar } from "@dicebear/core";
-import { bigEarsNeutral } from "@dicebear/collection";
+import { notionists } from "@dicebear/collection";
 import { useEffect, useState } from "react";
 
 type AvatarProps = {
@@ -11,7 +11,7 @@ export default function Avatar({ salt }: AvatarProps) {
 
     useEffect(() => {
         (async () => {
-            const avatar = createAvatar(bigEarsNeutral, {
+            const avatar = createAvatar(notionists, {
                 seed: `Allokate ${salt}`,
             });
 

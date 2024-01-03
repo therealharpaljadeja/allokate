@@ -135,6 +135,7 @@ export type TPoolMetadataClientSide = {
 };
 
 export type TMicroGrantRecipientRaw = {
+    chainId?: string;
     recipientId: `0x${string}`;
     poolId: `0x${string}`;
     sender: `0x${string}`;
@@ -246,6 +247,8 @@ export type TMicroGrantRaw = {
     useRegistryAnchor: boolean;
     blockTimestamp: string;
     pool: TPoolRaw;
+    allocateds?: TAllocatedData[];
+    distributeds?: TDistributedData[];
 };
 
 export type TMicroGrantClientSide = {

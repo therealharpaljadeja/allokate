@@ -1,11 +1,13 @@
 import {
     getApplicationData,
+    getAllMicroGrantRecipientsBySender,
     getProfileOwnerAndMembersByAnchor,
 } from "@/src/utils/request";
 import {
     EApplicationStatus,
     TActivity,
     TMicroGrantRecipientByAppIdClientSide,
+    TMicroGrantRecipientClientSide,
 } from "@/src/utils/types";
 import { useContext, useEffect, useState } from "react";
 import Text from "./Text";
@@ -60,6 +62,9 @@ export default function ApplicationOverview({
         useState<
             { owner: `0x${string}`; members: `0x${string}`[] } | undefined
         >(undefined);
+    const [otherApplications, setOtherApplications] = useState<
+        TMicroGrantRecipientClientSide[] | undefined
+    >(undefined);
 
     useEffect(() => {
         (async () => {
@@ -76,6 +81,16 @@ export default function ApplicationOverview({
                 );
 
                 setApplicationOwnerAndMembers(OwnerAndmembers);
+
+                let recipients = await getAllMicroGrantRecipientsBySender(
+                    application.sender
+                );
+
+                let recipientsOtherThanCurrent = recipients.filter(
+                    (recipient) => recipient.poolId !== poolId
+                );
+
+                setOtherApplications(recipientsOtherThanCurrent);
             })();
         }
     }, [application]);
@@ -94,6 +109,8 @@ export default function ApplicationOverview({
         (allocated) => allocated.sender.toLowerCase() === address?.toLowerCase()
     ).length;
 
+    console.log(isAllocator, hasAllocated);
+
     const generateActivity = () => {
         const activity: TActivity[] = [];
 
@@ -103,8 +120,10 @@ export default function ApplicationOverview({
             textBold: `Pool Id ${application.microGrant.poolId}`,
             href: getAddressExplorerLink(application.microGrant.pool.strategy),
             suffixText: `created`,
-            date: formatDateDifference(application.blockTimestamp),
-            dateTime: prettyTimestamp(Number(application.blockTimestamp)),
+            date: formatDateDifference(application.microGrant.blockTimestamp),
+            dateTime: prettyTimestamp(
+                Number(application.microGrant.blockTimestamp)
+            ),
         };
 
         const applicationRegisteredActivity: TActivity = {
@@ -175,7 +194,7 @@ export default function ApplicationOverview({
         }
     };
 
-    const SideTableItems = [
+    const ApplicationDetailsTable = [
         {
             label: "Status",
             value: (
@@ -302,7 +321,7 @@ export default function ApplicationOverview({
                     ) : null}
                     <SideTable
                         title="Application Details"
-                        items={SideTableItems}
+                        items={ApplicationDetailsTable}
                     />
                     {applicationOwnerAndMembers && (
                         <div className="w-full col-span-2 flex flex-col border border-color-400 px-6 py-4">
@@ -341,6 +360,80 @@ export default function ApplicationOverview({
                         </div>
                     )}
                     <ApplicationActivity activity={generateActivity()} />
+                    {otherApplications && (
+                        <div className="w-full col-span-2 flex flex-col border border-color-400 px-6 py-4">
+                            <Title className="text-[20px] mb-6">
+                                Other applications by same sender
+                            </Title>
+                            <div className="flex w-full flex-col space-y-4">
+                                {otherApplications.map((application) => (
+                                    <div
+                                        key={application.blockTimestamp}
+                                        className="grid grid-cols-3 gap-6 justify-items-end items-center"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            {application.chainId === "5" ? (
+                                                <>
+                                                    <img
+                                                        src="/eth.svg"
+                                                        className="h-5 w-5"
+                                                    />
+                                                    <Text className="text-[14px] whitespace-nowrap">
+                                                        {`    ${application.metadata.name.slice(
+                                                            0,
+                                                            10
+                                                        )}...
+                                                                `}
+                                                    </Text>
+                                                </>
+                                            ) : application.chainId ===
+                                              "421614" ? (
+                                                <>
+                                                    <img
+                                                        src="/arb.png"
+                                                        className="h-5 w-5"
+                                                    />
+                                                    <Link
+                                                        href={`/pool/${application.poolId}/application/${application.recipientId}`}
+                                                    >
+                                                        <Text className="text-[14px] underline whitespace-nowrap">
+                                                            {`${application.metadata.name.slice(
+                                                                0,
+                                                                10
+                                                            )}...`}
+                                                        </Text>
+                                                    </Link>
+                                                </>
+                                            ) : null}
+                                        </div>
+                                        <div>
+                                            <Text className="text-[14px]">
+                                                {`${formatEther(
+                                                    BigInt(
+                                                        application.requestedAmount
+                                                    )
+                                                )} ETH`}
+                                            </Text>
+                                        </div>
+                                        <div>
+                                            {" "}
+                                            <div
+                                                className={`px-2 py-1 ${
+                                                    statusColorScheme[
+                                                        application.status
+                                                    ]
+                                                }`}
+                                            >
+                                                <Text className="text-[14px]">
+                                                    {application.status}
+                                                </Text>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

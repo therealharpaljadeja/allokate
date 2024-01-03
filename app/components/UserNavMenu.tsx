@@ -21,13 +21,13 @@ export default function UserNavMenu() {
                     Explore Profiles
                 </Title>
             </Link>
-            <Link href="/create/profile">
-                {profile ? null : (
+            {profile ? null : (
+                <Link href="/create/profile">
                     <Title className="hover:underline italic text-[20px]">
                         Create Profile
                     </Title>
-                )}
-            </Link>
+                </Link>
+            )}
             <Link href="/create/pool">
                 {profile ? (
                     <Title className="hover:underline italic text-[20px]">

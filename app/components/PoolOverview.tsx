@@ -10,13 +10,14 @@ import CustomTab from "./CustomTab";
 import { useContext, useEffect, useState } from "react";
 import {
     getMicroGrantRecipientsByPoolId,
+    getPoolActivity,
     getPoolByPoolId,
 } from "@/src/utils/request";
 import { getPoolStatus } from "@/src/utils/common";
 import Text from "./Text";
 import Link from "next/link";
 import { sliceAddress } from "./Address";
-import { encodeFunctionData, formatEther } from "viem";
+import { formatEther } from "viem";
 import Title from "./Title";
 import ApplicationGrid from "./ApplicationGrid";
 import Button from "./Button";
@@ -25,7 +26,6 @@ import { PoolContext } from "../context/PoolContext";
 import PoolAllocatorForm from "./PoolAllocatorForm";
 import { MarkdownView } from "./Markdown";
 import { MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
-import { StrategyType } from "@allo-team/allo-v2-sdk/dist/strategies/MicroGrantsStrategy/types";
 import { usePublicClient, useWalletClient } from "wagmi";
 import toast from "react-hot-toast";
 
@@ -53,8 +53,32 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
     useEffect(() => {
         (async () => {
             let response = await getPoolByPoolId(poolId);
-
             setPool(response);
+
+            let {
+                poolCreatedAt,
+                poolAllDistributeds,
+                poolAllocateds,
+                recipientRequests,
+            } = await getPoolActivity(poolId);
+
+            let activity;
+            if (poolAllDistributeds && poolAllocateds && recipientRequests) {
+                console.log(
+                    poolAllDistributeds,
+                    poolAllocateds,
+                    recipientRequests
+                );
+                activity = [
+                    ...poolAllDistributeds,
+                    ...poolAllocateds,
+                    ...recipientRequests,
+                ].sort((x, y) =>
+                    x.blockTimestamp > y.blockTimestamp ? -1 : 1
+                );
+            }
+
+            console.log(activity);
         })();
     }, []);
 

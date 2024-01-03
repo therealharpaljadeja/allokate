@@ -364,3 +364,50 @@ export const getProfilesQuery = gql`
         }
     }
 `;
+
+export const getPoolActivityQuery = gql`
+    query getPoolActivityQuery($poolId: String!) {
+        pools(condition: { poolId: $poolId }) {
+            poolId
+            chainId
+            amount
+            createdAt
+            microGrant {
+                allocateds {
+                    recipientId
+                    status
+                    sender
+                    blockTimestamp
+                }
+                distributeds {
+                    recipientId
+                    amount
+                    sender
+                    blockTimestamp
+                }
+            }
+        }
+
+        microGrantRecipients(condition: { chainId: "421614" }) {
+            poolId
+            blockTimestamp
+            recipientId
+            status
+        }
+    }
+`;
+
+export const getAllMicroGrantRecipientsBySenderQuery = gql`
+    query getAllMicroGrantRecipientsBySenderQuery {
+        microGrantRecipients(orderBy: BLOCK_TIMESTAMP_DESC) {
+            chainId
+            recipientId
+            poolId
+            sender
+            requestedAmount
+            status
+            blockTimestamp
+            metadataPointer
+        }
+    }
+`;

@@ -22,10 +22,12 @@ import {
 } from "@/src/utils/types";
 import {
     getActiveMicroGrantsQuery,
+    getAllMicroGrantRecipientsBySenderQuery,
     getAnchors,
     getEndedMicroGrantsQuery,
     getMicroGrantRecipientQuery,
     getMicroGrantRecipientsBySenderQuery,
+    getPoolActivityQuery,
     getPoolByPoolIdQuery,
     getPoolsByProfileIdQuery,
     getProfileQuery,
@@ -39,6 +41,7 @@ import {
 import request from "graphql-request";
 import { getIPFSClient } from "@/src/services/ipfs";
 import { Status } from "@allo-team/allo-v2-sdk/dist/strategies/types";
+import { formatEther } from "viem";
 
 const getProfilesByOwner = async ({
     chainId,
@@ -91,12 +94,13 @@ export const getProfileById = async ({
     let result = {} as TProfileClientSide;
 
     let metadataPointer = profile.metadataPointer;
-
-    let ipfsClient = await getIPFSClient();
-
-    let metadata: TProfileMetadata = await ipfsClient.fetchJson(
-        metadataPointer
-    );
+    let metadata;
+    try {
+        let ipfsClient = await getIPFSClient();
+        metadata = await ipfsClient.fetchJson(metadataPointer);
+    } catch (error) {
+        console.log(error);
+    }
 
     result.anchor = profile.anchor;
     result.createdAt = profile.createdAt;
@@ -270,14 +274,11 @@ export async function getGrants(
         let metadata: TPoolMetadataRaw = await ipfsClient.fetchJson(
             metadataPointer
         );
-
         poolMetadata = metadata;
 
-        if (metadata.base64Image) {
+        if (metadata.base64Image && typeof metadata.base64Image == "string") {
             let image = await ipfsClient.fetchJson(metadata.base64Image);
-
             poolMetadata.image = image;
-
             pool.metadata = poolMetadata;
         }
 
@@ -287,7 +288,6 @@ export async function getGrants(
             approvalThreshold: grants[i].approvalThreshold,
             maxRequestedAmount: grants[i].maxRequestedAmount,
         };
-
         result.push(pool);
     }
 
@@ -386,6 +386,7 @@ export async function microGrantRecipientsRawToClientSide(
             final.requestedAmount = recipient.requestedAmount;
             final.sender = recipient.sender;
             final.status = recipient.status;
+            final.chainId = recipient.chainId;
 
             result.push(final);
         }
@@ -437,14 +438,14 @@ export async function getTotalAmountDistributed() {
         {}
     );
 
-    let result = "0";
+    let result = BigInt(0);
     for (let i = 0; i < microGrants.length; i++) {
         microGrants[i].distributeds.forEach((distributed) => {
-            result = distributed.amount + result;
+            result = BigInt(distributed.amount) + result;
         });
     }
 
-    return result;
+    return formatEther(result);
 }
 
 export async function getProfiles() {
@@ -509,4 +510,52 @@ export async function getProfileOwnerAndMembersByAnchor(
         owner: profile.owner,
         members,
     };
+}
+
+export async function getPoolActivity(poolId: string) {
+    let {
+        pools,
+        microGrantRecipients,
+    }: {
+        pools: (TPoolRaw & { createdAt: string })[];
+        microGrantRecipients: TMicroGrantRecipientRaw[];
+    } = await request(graphqlEndpoint, getPoolActivityQuery, {
+        poolId,
+    });
+
+    let poolOnArbitrum = pools.filter((pool) => pool.chainId === "421614")[0];
+
+    let poolCreatedAt = poolOnArbitrum.createdAt;
+    let poolAllocateds = poolOnArbitrum.microGrant.allocateds;
+    let poolAllDistributeds = poolOnArbitrum.microGrant.distributeds;
+
+    let recipientRequests = microGrantRecipients.filter(
+        (recipient) =>
+            recipient.poolId === poolId && recipient.status === "Pending"
+    );
+
+    return {
+        poolCreatedAt,
+        poolAllocateds,
+        poolAllDistributeds,
+        recipientRequests,
+    };
+}
+
+export async function getAllMicroGrantRecipientsBySender(
+    sender: `0x${string}`
+): Promise<TMicroGrantRecipientClientSide[]> {
+    let {
+        microGrantRecipients,
+    }: { microGrantRecipients: TMicroGrantRecipientRaw[] } = await request(
+        graphqlEndpoint,
+        getAllMicroGrantRecipientsBySenderQuery,
+        {}
+    );
+
+    let filtered = microGrantRecipients.filter(
+        (recipient) => recipient.sender === sender
+    );
+
+    return await microGrantRecipientsRawToClientSide(filtered);
 }

@@ -28,7 +28,10 @@ export default function Explore() {
             <Title className="text-[20px] italic">Profiles</Title>
             <div className="grid grid-cols-4 gap-4">
                 {profiles?.map((profile) => (
-                    <div className="flex space-x-2  border-2 border-color-400 p-2">
+                    <div
+                        key={profile.profileId}
+                        className="flex space-x-2  border-2 border-color-400 p-2"
+                    >
                         <Avatar salt={profile.profileId} />
                         <div className="flex flex-col space-y-2">
                             <Title className="text-[16px]">

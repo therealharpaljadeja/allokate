@@ -22,7 +22,6 @@ import {
 import PoolsGrid from "../../components/PoolsGrid";
 import { useAccount, useNetwork } from "wagmi";
 import ApplicationGrid from "@/app/components/ApplicationGrid";
-import { RootContext } from "@/app/context/RootContext";
 import { ProfileAndAddressArgs } from "@allo-team/allo-v2-sdk/dist/Registry/types";
 import { Registry } from "@allo-team/allo-v2-sdk";
 import ProfileMemberForm from "@/app/components/ProfileMemberForm";
@@ -49,7 +48,6 @@ export default function Me({ params }: { params: { id: string } }) {
                     chainId: chain?.id.toString(),
                     profileId: id,
                 });
-
                 setProfile(profile);
 
                 let registry = new Registry({
@@ -78,16 +76,17 @@ export default function Me({ params }: { params: { id: string } }) {
                 let applications = await getMicroGrantRecipientBySender(
                     profile.owner
                 );
-
                 setApplications(applications);
             })();
         }
     }, [profile]);
 
     if (!profile) return <Text className="text-[24px]">Loading...</Text>;
-
+    if (!profile.metadata)
+        return (
+            <Text className="text-[24px]">Couldn't load profile metadata</Text>
+        );
     let { profileId, anchor, metadata, owner, role } = profile;
-    console.log(role);
     let { name, email, website, description } = metadata;
     let { roleAccounts } = role;
 
