@@ -9,7 +9,6 @@ import {
     getTotalProfiles,
 } from "@/src/utils/request";
 import { EPoolStatus, TPoolClientSide } from "@/src/utils/types";
-import { formatEther } from "viem";
 
 export default function Home() {
     const [activeGrants, setActiveGrants] = useState<
@@ -36,18 +35,13 @@ export default function Home() {
 
             const endedGrants = await getGrants(EPoolStatus.ENDED);
             setEndedMicroGrants(endedGrants);
-
             const upcomingGrants = await getGrants(EPoolStatus.UPCOMING);
             setUpcomingGrants(upcomingGrants);
-
             const totalAmountDistributed = await getTotalAmountDistributed();
-            setTotalAmountDistributed(
-                formatEther(BigInt(totalAmountDistributed)).slice(0, 4)
-            );
 
+            setTotalAmountDistributed(totalAmountDistributed.slice(0, 4));
             const totalProfiles = await getTotalProfiles();
             setTotalProfiles(totalProfiles);
-
             setTotalPools(
                 activeGrants.length + endedGrants.length + upcomingGrants.length
             );
