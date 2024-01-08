@@ -227,20 +227,14 @@ export async function getGrants(
             }: { activeMicroGrants: TMicroGrantRaw[] } = await request(
                 graphqlEndpoint,
                 getActiveMicroGrantsQuery,
-                {
-                    first: 6,
-                    offset: 0,
-                }
+                {}
             );
 
             grants = activeMicroGrants;
             break;
         case EPoolStatus.ENDED:
             const { endedMicroGrants }: { endedMicroGrants: TMicroGrantRaw[] } =
-                await request(graphqlEndpoint, getEndedMicroGrantsQuery, {
-                    first: 6,
-                    offset: 0,
-                });
+                await request(graphqlEndpoint, getEndedMicroGrantsQuery, {});
             grants = endedMicroGrants;
             break;
         case EPoolStatus.UPCOMING:
@@ -325,12 +319,14 @@ export async function getPoolByPoolId(id: string): Promise<TPoolClientSide> {
 
         let imagePointer = poolMetadata.base64Image;
 
-        if (imagePointer) {
+        if (typeof imagePointer === "string") {
             let image = await ipfsClient.fetchJson(imagePointer);
             poolMetadataClient.image = image;
         }
 
         let profileMetadataPointer = pool.profile.metadataPointer;
+
+        console.log(profileMetadataPointer);
 
         let profileMetadata: TProfileMetadata = await ipfsClient.fetchJson(
             profileMetadataPointer
@@ -366,7 +362,8 @@ export async function microGrantRecipientsRawToClientSide(
             {} as TMicroGrantRecipientClientSide;
 
         let metadataPointer = recipient.metadataPointer;
-        if (metadataPointer !== "[object Object]") {
+
+        if (metadataPointer && metadataPointer !== "[object Object]") {
             let metadata: TApplicationMetadataRaw = await ipfsClient.fetchJson(
                 metadataPointer
             );
@@ -379,17 +376,16 @@ export async function microGrantRecipientsRawToClientSide(
 
                 final.metadata.image = image;
             }
-
-            final.blockTimestamp = recipient.blockTimestamp;
-            final.poolId = recipient.poolId;
-            final.recipientId = recipient.recipientId;
-            final.requestedAmount = recipient.requestedAmount;
-            final.sender = recipient.sender;
-            final.status = recipient.status;
-            final.chainId = recipient.chainId;
-
-            result.push(final);
         }
+        final.blockTimestamp = recipient.blockTimestamp;
+        final.poolId = recipient.poolId;
+        final.recipientId = recipient.recipientId;
+        final.requestedAmount = recipient.requestedAmount;
+        final.sender = recipient.sender;
+        final.status = recipient.status;
+        final.chainId = recipient.chainId;
+
+        result.push(final);
     }
 
     return result;
@@ -526,8 +522,12 @@ export async function getPoolActivity(poolId: string) {
     let poolOnArbitrum = pools.filter((pool) => pool.chainId === "421614")[0];
 
     let poolCreatedAt = poolOnArbitrum.createdAt;
-    let poolAllocateds = poolOnArbitrum.microGrant.allocateds;
-    let poolAllDistributeds = poolOnArbitrum.microGrant.distributeds;
+    let poolAllocateds;
+    let poolAllDistributeds;
+    if (poolOnArbitrum.microGrant) {
+        poolAllocateds = poolOnArbitrum.microGrant.allocateds;
+        poolAllDistributeds = poolOnArbitrum.microGrant.distributeds;
+    }
 
     let recipientRequests = microGrantRecipients.filter(
         (recipient) =>

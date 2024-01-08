@@ -34,6 +34,7 @@ const statusColorScheme = {
         "text-green-700 bg-green-50 border-2 border-green-600",
     [EPoolStatus.UPCOMING]: "text-blue-700 bg-blue-50 border-2 border-blue-600",
     [EPoolStatus.ENDED]: "text-gray-600 bg-gray-50 border-2 border-color-500",
+    ["Unavailable"]: "text-gray-600 bg-gray-50 border-2 border-color-500",
 };
 
 export default function PoolOverview({ poolId }: { poolId: string }) {
@@ -44,9 +45,9 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
     const [poolAmount, setPoolAmount] = useState<number | undefined>(0);
     const { isPoolManager, isAllocator } = useContext(PoolContext);
 
-    const [poolStatus, setPoolStatus] = useState<EPoolStatus | undefined>(
-        undefined
-    );
+    const [poolStatus, setPoolStatus] = useState<
+        EPoolStatus | "Unavailable" | undefined
+    >(undefined);
     const { data: client } = useWalletClient();
     const publicClient = usePublicClient();
 
@@ -64,11 +65,6 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
 
             let activity;
             if (poolAllDistributeds && poolAllocateds && recipientRequests) {
-                console.log(
-                    poolAllDistributeds,
-                    poolAllocateds,
-                    recipientRequests
-                );
                 activity = [
                     ...poolAllDistributeds,
                     ...poolAllocateds,
@@ -77,8 +73,6 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                     x.blockTimestamp > y.blockTimestamp ? -1 : 1
                 );
             }
-
-            console.log(activity);
         })();
     }, []);
 
@@ -89,12 +83,16 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                 setRecipients(recipients);
             })();
 
-            setPoolStatus(
-                getPoolStatus(
-                    Number(pool.microGrant.allocationStartTime),
-                    Number(pool.microGrant.allocationEndTime)
-                )
-            );
+            if (pool.microGrant) {
+                setPoolStatus(
+                    getPoolStatus(
+                        Number(pool.microGrant.allocationStartTime),
+                        Number(pool.microGrant.allocationEndTime)
+                    )
+                );
+            } else {
+                setPoolStatus("Unavailable");
+            }
         }
     }, [pool]);
 
@@ -169,7 +167,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
     if (!Object.keys(pool).length)
         return <Text className="font-WorkSans text-[24px]">No Such pool</Text>;
 
-    const items = [
+    let items = [
         {
             label: "Status",
             value: (
@@ -182,7 +180,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
         },
         {
             label: "Strategy Type",
-            value: pool.strategyName,
+            value: pool.strategyName ?? "Unavailable",
         },
         {
             label: "Website",
@@ -208,37 +206,45 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
             label: "Pool Amount",
             value: `${formatEther(BigInt(pool.amount))} ETH`,
         },
-        {
-            label: "Max Allocation",
-            value: `${formatEther(
-                BigInt(pool.microGrant.maxRequestedAmount)
-            )} ETH`,
-        },
-        {
-            label: "Start Date",
-            value: new Date(
-                Number(pool.microGrant.allocationStartTime) * 1000
-            ).toLocaleString(),
-        },
-        {
-            label: "End Date",
-            value: new Date(
-                Number(pool.microGrant.allocationEndTime) * 1000
-            ).toLocaleString(),
-        },
-        {
-            label: "Threshold",
-            value: pool.microGrant.approvalThreshold,
-        },
+
         {
             label: "Applications",
             value: recipients ? recipients.length.toString() : "0",
         },
-        {
-            label: "Profile Required",
-            value: pool.microGrant.useRegistryAnchor ? "Yes" : "No",
-        },
     ];
+
+    if (pool.microGrant) {
+        let microGrant = [
+            {
+                label: "Max Allocation",
+                value: `${formatEther(
+                    BigInt(pool.microGrant.maxRequestedAmount)
+                )} ETH`,
+            },
+            {
+                label: "Start Date",
+                value: new Date(
+                    Number(pool.microGrant.allocationStartTime) * 1000
+                ).toLocaleString(),
+            },
+            {
+                label: "End Date",
+                value: new Date(
+                    Number(pool.microGrant.allocationEndTime) * 1000
+                ).toLocaleString(),
+            },
+            {
+                label: "Threshold",
+                value: pool.microGrant.approvalThreshold,
+            },
+            {
+                label: "Profile Required",
+                value: pool.microGrant.useRegistryAnchor ? "Yes" : "No",
+            },
+        ];
+
+        items = [...items, ...microGrant];
+    }
 
     return (
         <div className="flex w-full flex-col space-y-8">
@@ -295,7 +301,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                     ) : (
                         <Button disabled={true}>Pool has closed</Button>
                     )}
-                    {poolAmount !== 0 ? (
+                    {isPoolManager && poolAmount !== 0 ? (
                         <Button onClick={withdraw}>Withdraw Funds</Button>
                     ) : null}
                     <SideTable items={items} title="Pool Details" />

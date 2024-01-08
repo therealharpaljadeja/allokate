@@ -51,11 +51,9 @@ const microGrantsQuery = `
 `;
 
 export const getActiveMicroGrantsQuery = gql`
-  query getActiveMicroGrantsQuery($first: Int!, $offset: Int!) {
+  query getActiveMicroGrantsQuery {
     activeMicroGrants(
       orderBy: BLOCK_TIMESTAMP_DESC,
-      first: $first,
-      offset: $offset,
       condition: {chainId: "421614"}
     )
       ${microGrantsQuery}
@@ -63,15 +61,15 @@ export const getActiveMicroGrantsQuery = gql`
 `;
 
 export const getUpcomingMicroGrantsQuery = gql`
-  query getUpcomingMicroGrantsQuery($first: Int!, $offset: Int!) {
-    upcomingMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, first: $first, offset: $offset, condition: {chainId: "421614"})
+  query getUpcomingMicroGrantsQuery {
+    upcomingMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, condition: {chainId: "421614"})
       ${microGrantsQuery}
   }
 `;
 
 export const getEndedMicroGrantsQuery = gql`
-  query getEndedMicroGrantsQuery($first: Int!, $offset: Int!) {
-    endedMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, first: $first, offset: $offset, condition: {chainId: "421614"})
+  query getEndedMicroGrantsQuery {
+    endedMicroGrants(orderBy: BLOCK_TIMESTAMP_DESC, condition: {chainId: "421614"})
       ${microGrantsQuery}
   }
 `;

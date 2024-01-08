@@ -360,7 +360,7 @@ export default function ApplicationOverview({
                         </div>
                     )}
                     <ApplicationActivity activity={generateActivity()} />
-                    {otherApplications && (
+                    {otherApplications && otherApplications.length > 0 && (
                         <div className="w-full col-span-2 flex flex-col border border-color-400 px-6 py-4">
                             <Title className="text-[20px] mb-6">
                                 Other applications by same sender
@@ -379,7 +379,7 @@ export default function ApplicationOverview({
                                                         className="h-5 w-5"
                                                     />
                                                     <Text className="text-[14px] whitespace-nowrap">
-                                                        {`    ${application.metadata.name.slice(
+                                                        {`    ${application.metadata?.name.slice(
                                                             0,
                                                             10
                                                         )}...
@@ -397,7 +397,7 @@ export default function ApplicationOverview({
                                                         href={`/pool/${application.poolId}/application/${application.recipientId}`}
                                                     >
                                                         <Text className="text-[14px] underline whitespace-nowrap">
-                                                            {`${application.metadata.name.slice(
+                                                            {`${application.metadata?.name.slice(
                                                                 0,
                                                                 10
                                                             )}...`}

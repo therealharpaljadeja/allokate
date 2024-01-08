@@ -48,7 +48,7 @@ export type TPoolRaw = {
     adminRoleId: string;
     managerRoleId: `0x${string}`;
     profile: TProfileRaw;
-    microGrant: TMicroGrantRaw;
+    microGrant?: TMicroGrantRaw;
 };
 
 export type TProfile = {
@@ -122,7 +122,14 @@ export type TPoolMetadataRaw = {
     name: string;
     website: string;
     description: string;
-    base64Image?: string;
+    base64Image?:
+        | string
+        | {
+              IpfsHash: string;
+              PinSize: number;
+              Timestamp: string;
+              isDuplicate: boolean;
+          };
 };
 
 // To be consumed by frontend
@@ -142,13 +149,13 @@ export type TMicroGrantRecipientRaw = {
     requestedAmount: string;
     status: EApplicationStatus;
     blockTimestamp: string;
-    metadataPointer: string;
+    metadataPointer?: string;
 };
 
 export type TMicroGrantRecipientClientSide = Omit<
     TMicroGrantRecipientRaw,
     "metadataPointer"
-> & { metadata: TApplicationMetadataClientSide };
+> & { metadata?: TApplicationMetadataClientSide };
 
 export type TNewPool = TPoolMetadataRaw & {
     // chain info
@@ -273,7 +280,7 @@ export type TPoolClientSide = {
     managerRoleId?: `0x${string}`;
     useRegistryAnchor?: boolean;
     profile?: TProfileMetadata;
-    microGrant: TMicroGrantClientSide;
+    microGrant?: TMicroGrantClientSide;
     metadata: TPoolMetadataClientSide;
 };
 
