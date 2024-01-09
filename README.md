@@ -31,6 +31,13 @@ Grant distribution tool built on Allo Protocol
 -   Manage profile managers
 -   Explore projects registered in the registry
 
+## PRs made to Allo projects during hackathon
+
+-   https://github.com/allo-protocol/allo-v2-spec/pull/62
+-   https://github.com/allo-protocol/allo-v2-spec/pull/59
+-   https://github.com/allo-protocol/allo-v2-sdk/pull/27
+-   https://github.com/allo-protocol/allo-v2-sdk/pull/28
+
 ## Feedback for Allo
 
 -   There is no easy way to get `profileId` that created application on a MicroGrant, my assumption is that since profile is not mandatory this is not a thing. But I would prefer profiles to be mandatory so that we can use a single identifier that can be cross-chain to fetch the history of recipients the profile has created.
@@ -39,6 +46,7 @@ Grant distribution tool built on Allo Protocol
 -   https://github.com/allo-protocol/allo-v2/issues/445
 -   A better separation between profiles that are individual and group (project/protocol) would be helpful
 -   Too many roles, Pool and Strategy are basically the same currently Allo separates them to achieve modularity. Assuming, that a pool will never change the strategy the roles Pool Manager and Strategy Allocator are basically the same so why have so many different roles...
+-   It is very difficult to find to get all pools created on Allo and find whether the pool is active or not, since the active or not status is dependent on strategy. For example, MicroGrant pools are active or inactive based on timestamps whereas RFP pools are active or inactive based on the variable in the strategy contract.
 -   SDK support for RFPGrants
 
 ## How to use
