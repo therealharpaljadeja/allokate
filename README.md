@@ -82,6 +82,7 @@ yarn dev
 ## Future Plan
 
 -   Fix Known bugs
+-   Add RFP Strategy support
 -   Add email notification feature or XMTP
     -   Notification when application status changes for recipient and also reviewers
 -   Add support for ERC20 tokens
