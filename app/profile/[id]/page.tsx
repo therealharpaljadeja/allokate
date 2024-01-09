@@ -86,8 +86,9 @@ export default function Me({ params }: { params: { id: string } }) {
         return (
             <Text className="text-[24px]">Couldn't load profile metadata</Text>
         );
-    let { profileId, anchor, metadata, owner, role } = profile;
-    let { name, email, website, description } = metadata;
+
+    let { profileId, anchor, metadata, owner, role, name } = profile;
+    let { email, website, description } = metadata;
     let { roleAccounts } = role;
 
     let SideTableItems = [
