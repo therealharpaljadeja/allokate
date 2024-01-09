@@ -21,6 +21,7 @@ Grant distribution tool built on Allo Protocol
 -   [Application Rejection](https://sepolia.arbiscan.io/tx/0xac850b6b9f15ad33e166f3d45b6b9b857cf56363ab22f140336ad3f0ea65f097)
 -   [Profile Creation](https://sepolia.arbiscan.io/tx/0x680cd55498c4412625a6ff4973cbb51e4e67b74fe47b74f9cdfec92a53c871af)
 -   [Add members to profile](https://sepolia.arbiscan.io/tx/0xeba38c45c788dbe60a576b1dd746481d53955a5cc6fd32db6732c4412759a210)
+-   [RFPCommitteeStrategy (Important because this lead to bug fix)](https://sepolia.arbiscan.io/tx/0x15ce7a80ef00ea639ff98e229b9c7aa6e01d5b2aea5da7515270e3cc321214a0)
 
 ## Features
 
