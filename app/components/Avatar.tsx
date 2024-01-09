@@ -21,7 +21,7 @@ export default function Avatar({ salt }: AvatarProps) {
 
     return (
         <div>
-            <img src={imageUri} className="w-20 h-20" />
+            <img src={imageUri} className="w-32 h-32" />
         </div>
     );
 }

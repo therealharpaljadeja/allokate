@@ -74,7 +74,7 @@ export default function Apply({ params }: { params: { id: string } }) {
                     .max(
                         Number(
                             formatEther(
-                                pool?.microGrant.maxRequestedAmount as any
+                                pool?.microGrant?.maxRequestedAmount as any
                             ).toString()
                         ),
                         "Cannot request more than the Max Allocation Amount"
@@ -296,7 +296,7 @@ export default function Apply({ params }: { params: { id: string } }) {
                     <p>
                         Max Amount:{" "}
                         {`${formatEther(
-                            pool?.microGrant.maxRequestedAmount as any
+                            pool?.microGrant?.maxRequestedAmount as any
                         ).toString()} ETH`}
                     </p>
                     {errors.requestAmount && (

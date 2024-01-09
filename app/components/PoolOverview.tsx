@@ -37,6 +37,17 @@ const statusColorScheme = {
     ["Unavailable"]: "text-gray-600 bg-gray-50 border-2 border-color-500",
 };
 
+const deriveStrategyType: { [strategyName: string]: string } = {
+    "allov2.MicroGrantsHatsStrategy": "MicroGrants Hats",
+    "allov2.MicroGrantsGovStrategy": "MicroGrants Gov",
+    "allov2.MicroGrantsStrategy": "MicroGrants",
+    "allov2.RFPSimpleStrategy": "RFP Simple",
+    "allov2.RFPCommitteeStrategy": "RFP Committee",
+    "allov2.QVSimpleStrategy": "QV Simple",
+    "allov2.DonationVotingMerkleDistributionDirectTransferStrategy":
+        "Donation Voting",
+};
+
 export default function PoolOverview({ poolId }: { poolId: string }) {
     const [pool, setPool] = useState<TPoolClientSide | undefined>();
     const [recipients, setRecipients] = useState<
@@ -180,7 +191,9 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
         },
         {
             label: "Strategy Type",
-            value: pool.strategyName ?? "Unavailable",
+            value: pool.strategyName
+                ? deriveStrategyType[pool.strategyName]
+                : "Unavailable",
         },
         {
             label: "Website",
@@ -190,7 +203,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                     target="_blank"
                     href={pool.profile?.website ?? "#"}
                 >
-                    {pool.profile?.website}
+                    {pool.profile?.website ?? "Unavailable"}
                 </Link>
             ),
         },
