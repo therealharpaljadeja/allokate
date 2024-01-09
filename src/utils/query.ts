@@ -409,3 +409,25 @@ export const getAllMicroGrantRecipientsBySenderQuery = gql`
         }
     }
 `;
+
+export const getAllPoolsQuery = gql`
+    query getAllPoolsQuery {
+        pools(orderBy: POOL_ID_DESC) {
+            poolId
+            chainId
+            profileId
+            strategy
+            strategyId
+            strategyName
+            token
+            tokenMetadata
+            amount
+            feePaid
+            baseFeePaid
+            metadataPointer
+            metadataProtocol
+            createdAt
+            microGrant ${microGrantsQuery}
+        }
+    }
+`;

@@ -4,6 +4,7 @@ import Table from "./components/Table";
 import Card from "./components/Card";
 import { useEffect, useState } from "react";
 import {
+    getAllPoolsCount,
     getGrants,
     getTotalAmountDistributed,
     getTotalProfiles,
@@ -35,16 +36,18 @@ export default function Home() {
 
             const endedGrants = await getGrants(EPoolStatus.ENDED);
             setEndedMicroGrants(endedGrants);
+
             const upcomingGrants = await getGrants(EPoolStatus.UPCOMING);
             setUpcomingGrants(upcomingGrants);
-            const totalAmountDistributed = await getTotalAmountDistributed();
 
+            const totalAmountDistributed = await getTotalAmountDistributed();
             setTotalAmountDistributed(totalAmountDistributed.slice(0, 4));
+
+            const totalPools = await getAllPoolsCount();
+            setTotalPools(totalPools);
+
             const totalProfiles = await getTotalProfiles();
             setTotalProfiles(totalProfiles);
-            setTotalPools(
-                activeGrants.length + endedGrants.length + upcomingGrants.length
-            );
         })();
     }, []);
 
@@ -65,7 +68,9 @@ export default function Home() {
                 />
             </div>
             <div className="flex w-full flex-col space-y-[20px]">
-                <h2 className="font-PlayFairDisplay text-[20px]">Pools</h2>
+                <h2 className="font-PlayFairDisplay text-[20px]">
+                    MicroGrants
+                </h2>
                 <Table
                     activeGrants={activeGrants}
                     inactiveGrants={endedMicroGrants}

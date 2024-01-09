@@ -23,6 +23,7 @@ import {
 import {
     getActiveMicroGrantsQuery,
     getAllMicroGrantRecipientsBySenderQuery,
+    getAllPoolsQuery,
     getAnchors,
     getEndedMicroGrantsQuery,
     getMicroGrantRecipientQuery,
@@ -135,20 +136,21 @@ export const getApplicationData = async (
 
         const application = response.microGrantRecipient;
 
-        const ipfsClient = getIPFSClient();
+        if (application.metadataPointer !== "[object Object]") {
+            const ipfsClient = getIPFSClient();
 
-        const metadata: TApplicationMetadataRaw = await ipfsClient.fetchJson(
-            application.metadataPointer
-        );
+            const metadata: TApplicationMetadataRaw =
+                await ipfsClient.fetchJson(application.metadataPointer);
 
-        result.metadata = metadata;
+            result.metadata = metadata;
 
-        if (metadata.base64Image) {
-            const bannerImage = await ipfsClient.fetchJson(
-                metadata.base64Image
-            );
+            if (metadata.base64Image) {
+                const bannerImage = await ipfsClient.fetchJson(
+                    metadata.base64Image
+                );
 
-            result.metadata.image = bannerImage;
+                result.metadata.image = bannerImage;
+            }
         }
 
         result.allocateds = application.microGrant.allocateds.filter(
@@ -274,6 +276,15 @@ export async function getGrants(
             let image = await ipfsClient.fetchJson(metadata.base64Image);
             poolMetadata.image = image;
             pool.metadata = poolMetadata;
+        } else if (
+            metadata.base64Image &&
+            typeof metadata.base64Image == "object"
+        ) {
+            let image = await ipfsClient.fetchJson(
+                metadata.base64Image.IpfsHash
+            );
+            poolMetadata.image = image;
+            pool.metadata = poolMetadata;
         }
 
         pool.microGrant = {
@@ -325,8 +336,6 @@ export async function getPoolByPoolId(id: string): Promise<TPoolClientSide> {
         }
 
         let profileMetadataPointer = pool.profile.metadataPointer;
-
-        console.log(profileMetadataPointer);
 
         let profileMetadata: TProfileMetadata = await ipfsClient.fetchJson(
             profileMetadataPointer
@@ -558,4 +567,23 @@ export async function getAllMicroGrantRecipientsBySender(
     );
 
     return await microGrantRecipientsRawToClientSide(filtered);
+}
+
+// export async function getAllPools() {
+//     let { pools }: { pools: TPoolRaw[] } = await request(
+//         graphqlEndpoint,
+//         getAllPoolsQuery,
+//         {}
+//     );
+// }
+
+export async function getAllPoolsCount(): Promise<number> {
+    let response: { pools: { chainId: string; poolId: string }[] } =
+        await request(graphqlEndpoint, getAllPoolsQuery, {});
+
+    let pools = response.pools;
+
+    let poolsOnArbitrum = pools.filter((pool) => pool.chainId === "421614");
+
+    return poolsOnArbitrum.length;
 }
