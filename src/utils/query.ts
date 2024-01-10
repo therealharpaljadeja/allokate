@@ -242,7 +242,7 @@ export const getProfileQuery = gql`
 
 export const getPoolsByProfileIdQuery = gql`
     query getPoolsByProfileId($profileId: String!) {
-        pools(condition: { profileId: $profileId }) {
+        pools(condition: { profileId: $profileId }, orderBy: UPDATED_AT_DESC) {
             poolId
             amount
             metadataPointer
