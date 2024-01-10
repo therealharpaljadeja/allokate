@@ -4,7 +4,6 @@ import {
     getProfileOwnerAndMembersByAnchor,
 } from "@/src/utils/request";
 import {
-    EApplicationStatus,
     TActivity,
     TMicroGrantRecipientByAppIdClientSide,
     TMicroGrantRecipientClientSide,
@@ -15,14 +14,15 @@ import Link from "next/link";
 import Title from "./Title";
 import {
     convertAddressToShortString,
+    formatDateAsDDMMYYYY,
     formatDateDifference,
     getAddressExplorerLink,
     getTxnExplorerLink,
     humanReadableAmount,
     prettyTimestamp,
+    statusColorScheme,
 } from "@/src/utils/common";
 import { formatEther } from "viem";
-import { formatDateAsDDMMYYYY } from "./ApplicationGrid";
 import SideTable from "./SideTable";
 import ApplicationActivity from "./ApplicationActivity";
 import { PoolContext } from "../context/PoolContext";
@@ -33,17 +33,6 @@ import { Status } from "@allo-team/allo-v2-sdk/dist/strategies/types";
 import toast from "react-hot-toast";
 import { MarkdownView } from "./Markdown";
 import Address from "./Address";
-
-const statusColorScheme = {
-    [EApplicationStatus.ACCEPTED]:
-        "text-green-700 bg-green-50 border-2 border-green-600",
-    [EApplicationStatus.PENDING]:
-        "text-gray-700 bg-gray-50 border-2 border-gray-600",
-    [EApplicationStatus.REJECTED]:
-        "text-red-600 bg-red-50 border-2 border-color-500",
-    [EApplicationStatus.PAID]:
-        "text-blue-600 bg-blue-50 border-2 border-color-500",
-};
 
 export default function ApplicationOverview({
     poolId,
@@ -108,8 +97,6 @@ export default function ApplicationOverview({
     const hasAllocated = application.allocateds.filter(
         (allocated) => allocated.sender.toLowerCase() === address?.toLowerCase()
     ).length;
-
-    console.log(isAllocator, hasAllocated);
 
     const generateActivity = () => {
         const activity: TActivity[] = [];

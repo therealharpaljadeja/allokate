@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import { parseEther } from "viem";
 import { useNetwork, usePublicClient, useWalletClient } from "wagmi";
 import { date, number, object, string } from "yup";
+import { rpc } from "@/src/utils/constants";
 
 const createPoolSchema = object({
     name: string().required(),
@@ -72,7 +73,7 @@ export default function CreatePool() {
 
             let strategy = new MicroGrantsStrategy({
                 chain: chain?.id,
-                rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                rpc,
             });
 
             let strategyAddress: string = "0x";
@@ -151,7 +152,7 @@ export default function CreatePool() {
         if (chain) {
             const allo = new Allo({
                 chain: chain?.id,
-                rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                rpc,
             });
 
             let result = await deployStrategy();
@@ -237,7 +238,7 @@ export default function CreatePool() {
 
                         let poolId = -1;
 
-                        // poolId is a BigInt and we eed to parse it to a number
+                        // poolId is a BigInt and we need to parse it to a number
                         if (logValues.poolId) poolId = Number(logValues.poolId);
 
                         toast.success("Pool Deployed!", {
@@ -250,7 +251,6 @@ export default function CreatePool() {
                     toast.error("Something went wrong", {
                         id: createPoolToast,
                     });
-                    console.log(error);
                     setCreatingPool(false);
                 }
             }

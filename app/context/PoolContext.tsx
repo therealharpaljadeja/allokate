@@ -13,27 +13,22 @@ import {
     usePublicClient,
     useWalletClient,
 } from "wagmi";
+import { rpc } from "@/src/utils/constants";
 
 export interface IPoolContextProps {
-    // isLoaded: boolean;
     isAllocator: boolean;
     isPoolManager: boolean;
     isRecipient: boolean;
-    // strategy?: MicroGrantsStrategy;
     batchSetAllocator: (data: SetAllocatorData[]) => Promise<void>;
     allocate: (data: Allocation) => Promise<void>;
-    // steps: TProgressStep[];
 }
 
 export const PoolContext = React.createContext<IPoolContextProps>({
-    // isLoaded: false,
     isAllocator: false,
     isPoolManager: false,
     isRecipient: false,
-    // strategy: undefined,
     batchSetAllocator: async () => {},
     allocate: async () => {},
-    // steps: initialSteps,
 });
 
 export const PoolContextProvider = (props: {
@@ -59,7 +54,7 @@ export const PoolContextProvider = (props: {
                 console.log("Checking allocator...");
                 const allo = new Allo({
                     chain: Number(chain?.id),
-                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                    rpc,
                 });
 
                 const _isPoolManager = await allo.isPoolManager(
@@ -74,7 +69,7 @@ export const PoolContextProvider = (props: {
                     chain: Number(chain?.id),
                     address: strategy as `0x${string}`,
                     poolId: Number(props.poolId),
-                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                    rpc,
                 });
 
                 setStrategy(microGrants);

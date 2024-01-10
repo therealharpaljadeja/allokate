@@ -84,27 +84,6 @@ export default function PoolAllocatorForm() {
         );
     };
 
-    const updateAllocators = (
-        newAllocators: { address: string; action: string }[]
-    ) => {
-        if (allocators.length === 1 && allocators[0].address === "") {
-            dedupeAllocators(newAllocators);
-        } else {
-            dedupeAllocators([...allocators, ...newAllocators]);
-        }
-    };
-
-    const dedupeAllocators = (data: { address: string; action: string }[]) => {
-        const uniqueAllocators = Array.from(
-            new Map(
-                [...data].map((allocator) => [allocator.address, allocator])
-            ).values()
-        );
-
-        setAllocators(uniqueAllocators);
-        setValue("allocators", uniqueAllocators);
-    };
-
     return (
         <form onSubmit={handleSubmit(onHandleSubmit)}>
             <div className="space-y-4">

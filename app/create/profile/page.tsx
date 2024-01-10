@@ -15,6 +15,7 @@ import Text from "@/app/components/Text";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { chainId, rpc } from "@/src/utils/constants";
 
 const createProfileSchema = object({
     name: string().required(),
@@ -53,8 +54,8 @@ export default function CreateProfile() {
         const { IpfsHash } = await ipfsClient.pinJSON(profileMetadata);
 
         const registry = new Registry({
-            chain: 421614,
-            rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+            chain: chainId,
+            rpc,
         });
 
         if (client) {

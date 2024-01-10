@@ -5,7 +5,13 @@ import {
     keccak256,
     stringToBytes,
 } from "viem";
-import { AbiItem, AbiComponent, ContractAbi, EPoolStatus } from "./types";
+import {
+    AbiItem,
+    AbiComponent,
+    ContractAbi,
+    EPoolStatus,
+    EApplicationStatus,
+} from "./types";
 
 export const extractLogByEventName = (logs: any[], eventName: string) => {
     return logs.find((log) => log.eventName === eventName);
@@ -141,5 +147,24 @@ export function humanReadableAmount(amount: string, decimals?: number) {
     }
     return 0;
 }
+
+export function formatDateAsDDMMYYYY(date: Date) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+}
+
+export const statusColorScheme = {
+    [EApplicationStatus.ACCEPTED]:
+        "text-green-700 bg-green-50 border-2 border-green-600",
+    [EApplicationStatus.PENDING]:
+        "text-gray-700 bg-gray-50 border-2 border-gray-600",
+    [EApplicationStatus.REJECTED]:
+        "text-red-600 bg-red-50 border-2 border-color-500",
+    [EApplicationStatus.PAID]:
+        "text-blue-600 bg-blue-50 border-2 border-color-500",
+};
 
 export const ethereumAddressRegExp = /^(0x)?[0-9a-fA-F]{40}$/;

@@ -25,6 +25,7 @@ import ApplicationGrid from "@/app/components/ApplicationGrid";
 import { ProfileAndAddressArgs } from "@allo-team/allo-v2-sdk/dist/Registry/types";
 import { Registry } from "@allo-team/allo-v2-sdk";
 import ProfileMemberForm from "@/app/components/ProfileMemberForm";
+import { chainId, rpc } from "@/src/utils/constants";
 
 export default function Me({ params }: { params: { id: string } }) {
     const [pools, setPools] = useState<TPoolClientSide[] | undefined>(
@@ -51,8 +52,8 @@ export default function Me({ params }: { params: { id: string } }) {
                 setProfile(profile);
 
                 let registry = new Registry({
-                    chain: 421614,
-                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                    chain: chainId,
+                    rpc,
                 });
 
                 const profileAndAddressArgs: ProfileAndAddressArgs = {

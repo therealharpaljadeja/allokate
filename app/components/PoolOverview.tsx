@@ -28,6 +28,7 @@ import { MarkdownView } from "./Markdown";
 import { MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
 import { usePublicClient, useWalletClient } from "wagmi";
 import toast from "react-hot-toast";
+import { chainId, rpc } from "@/src/utils/constants";
 
 const statusColorScheme = {
     [EPoolStatus.ACTIVE]:
@@ -111,9 +112,9 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
         if (pool && poolStatus === EPoolStatus.ENDED) {
             (async () => {
                 const strategy = new MicroGrantsStrategy({
-                    chain: 421914,
+                    chain: chainId,
                     poolId: Number(poolId), // valid pool Id
-                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                    rpc,
                 });
 
                 strategy.setContract(pool.strategy as `0x${string}`);
@@ -127,13 +128,13 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
     async function withdraw() {
         if (pool) {
             const strategy = new MicroGrantsStrategy({
-                chain: 421914,
+                chain: chainId,
                 poolId: Number(poolId), // valid pool Id
-                rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                rpc,
             });
 
             strategy.setContract(pool.strategy as `0x${string}`);
-            console.log(await strategy.getNative());
+
             let withdrawingToast = toast.loading("Withdrawing...");
 
             // Withdraw

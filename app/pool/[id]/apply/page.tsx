@@ -8,6 +8,7 @@ import Text from "@/app/components/Text";
 import Title from "@/app/components/Title";
 import { RootContext } from "@/app/context/RootContext";
 import { getIPFSClient } from "@/src/services/ipfs";
+import { chainId, rpc } from "@/src/utils/constants";
 import { getPoolByPoolId } from "@/src/utils/request";
 import { TPoolClientSide } from "@/src/utils/types";
 import { MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
@@ -144,8 +145,8 @@ export default function Apply({ params }: { params: { id: string } }) {
                 };
 
                 let strategy = new MicroGrantsStrategy({
-                    chain: 421614,
-                    rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                    chain: chainId,
+                    rpc,
                     poolId: Number(pool.id),
                 });
 

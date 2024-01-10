@@ -2,14 +2,7 @@ import { TMicroGrantRecipientClientSide } from "@/src/utils/types";
 import { formatEther } from "viem";
 import Text from "./Text";
 import ApplcationCard from "./ApplicationCard";
-
-export function formatDateAsDDMMYYYY(date: Date) {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
-}
+import { formatDateAsDDMMYYYY } from "@/src/utils/common";
 
 export default function ApplicationGrid({
     applications,

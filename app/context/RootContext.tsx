@@ -5,6 +5,7 @@ import { TransactionData } from "@allo-team/allo-v2-sdk/dist/Common/types";
 import { MemberArgs } from "@allo-team/allo-v2-sdk/dist/Registry/types";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import { useAccount, useNetwork, useWalletClient } from "wagmi";
+import { chainId, rpc } from "@/src/utils/constants";
 
 export type RootContextType = {
     profile: TProfilesByOwnerResponse | null;
@@ -24,8 +25,8 @@ export default function RootContextProvider({ children }: PropsWithChildren) {
     );
     const [registry, setRegistry] = useState(
         new Registry({
-            chain: 421614,
-            rpc: "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+            chain: chainId,
+            rpc,
         })
     );
 

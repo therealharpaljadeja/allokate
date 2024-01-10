@@ -103,15 +103,7 @@ export const getProfileById = async ({
         console.log(error);
     }
 
-    result.anchor = profile.anchor;
-    result.createdAt = profile.createdAt;
-    result.creator = profile.creator;
-    result.metadata = metadata;
-    result.name = profile.name;
-    result.nonce = profile.nonce;
-    result.owner = profile.owner;
-    result.profileId = profile.profileId;
-    result.role = profile.role;
+    result = { ...profile, metadata };
 
     return result;
 };
@@ -386,13 +378,15 @@ export async function microGrantRecipientsRawToClientSide(
                 final.metadata.image = image;
             }
         }
-        final.blockTimestamp = recipient.blockTimestamp;
-        final.poolId = recipient.poolId;
-        final.recipientId = recipient.recipientId;
-        final.requestedAmount = recipient.requestedAmount;
-        final.sender = recipient.sender;
-        final.status = recipient.status;
-        final.chainId = recipient.chainId;
+        // final.blockTimestamp = recipient.blockTimestamp;
+        // final.poolId = recipient.poolId;
+        // final.recipientId = recipient.recipientId;
+        // final.requestedAmount = recipient.requestedAmount;
+        // final.sender = recipient.sender;
+        // final.status = recipient.status;
+        // final.chainId = recipient.chainId;
+
+        final = recipient;
 
         result.push(final);
     }
@@ -568,14 +562,6 @@ export async function getAllMicroGrantRecipientsBySender(
 
     return await microGrantRecipientsRawToClientSide(filtered);
 }
-
-// export async function getAllPools() {
-//     let { pools }: { pools: TPoolRaw[] } = await request(
-//         graphqlEndpoint,
-//         getAllPoolsQuery,
-//         {}
-//     );
-// }
 
 export async function getAllPoolsCount(): Promise<number> {
     let response: { pools: { chainId: string; poolId: string }[] } =
