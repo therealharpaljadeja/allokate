@@ -37,7 +37,7 @@ export default function PoolCard({
                         </h4>
                     </Link>
                     <p className="font-WorkSans text-[14px]">
-                        {shortDescription}
+                        {`${shortDescription.slice(0, 100)}...`}
                     </p>
                 </div>
                 <div className="flex justify-between w-full space-x-4">
