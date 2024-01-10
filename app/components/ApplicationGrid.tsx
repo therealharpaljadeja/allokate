@@ -25,9 +25,9 @@ export default function ApplicationGrid({
 
     return (
         <>
-            {applications?.map((application) => (
+            {applications?.map((application, index) => (
                 <ApplcationCard
-                    key={application.recipientId}
+                    key={index}
                     id={application.recipientId}
                     requestedAmount={formatEther(
                         BigInt(application.requestedAmount)

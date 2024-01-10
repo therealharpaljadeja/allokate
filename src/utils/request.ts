@@ -325,6 +325,11 @@ export async function getPoolByPoolId(id: string): Promise<TPoolClientSide> {
         if (typeof imagePointer === "string") {
             let image = await ipfsClient.fetchJson(imagePointer);
             poolMetadataClient.image = image;
+        } else {
+            if (imagePointer?.IpfsHash) {
+                let image = await ipfsClient.fetchJson(imagePointer?.IpfsHash);
+                poolMetadataClient.image = image;
+            }
         }
 
         let profileMetadataPointer = pool.profile.metadataPointer;
