@@ -64,9 +64,15 @@ export default function RootClientComponent({
                         <div className="flex w-[100%] justify-between items-center">
                             <div>
                                 <Link href={"/"}>
-                                    <Title className="text-[28px] italic">
-                                        AlloKate
-                                    </Title>
+                                    <div className="flex items-center space-x-2">
+                                        <img
+                                            src="/lotus.svg"
+                                            className="h-10 w-16 fill-white"
+                                        />
+                                        <Title className="text-[28px] italic">
+                                            AlloKate
+                                        </Title>
+                                    </div>
                                 </Link>
                             </div>
                             <div className="flex space-x-8 items-center">
