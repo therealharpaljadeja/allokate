@@ -198,8 +198,6 @@ export default function CreatePool() {
                     managers: [(profile as any).owner as `0x${string}`],
                 };
 
-                console.log(poolCreationData);
-
                 let createPoolData;
 
                 createPoolData = await allo.createPoolWithCustomStrategy(
@@ -210,8 +208,6 @@ export default function CreatePool() {
                     toast.loading("Waiting for user...", {
                         id: createPoolToast,
                     });
-
-                    console.log(createPoolData);
 
                     const tx = await client?.sendTransaction({
                         to: createPoolData.to,
