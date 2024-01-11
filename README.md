@@ -26,6 +26,7 @@ Grant distribution tool built on Allo Protocol
 ## Features
 
 -   MicroGrants Commitee Strategy on Arbitrum is supported
+-   **MicroGrants Conditional Pool (custom strategy)**
 -   Pool Activity (creation, registering recipients, rejection, approvals, distribution, etc...)
 -   Grant history of the recipient on different chains for the reviewer
 -   Manage pool allocators
