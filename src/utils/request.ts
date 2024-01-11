@@ -391,7 +391,7 @@ export async function microGrantRecipientsRawToClientSide(
         // final.status = recipient.status;
         // final.chainId = recipient.chainId;
 
-        final = recipient;
+        final = { ...final, ...recipient };
 
         result.push(final);
     }
