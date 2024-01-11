@@ -4,7 +4,7 @@ Grant distribution tool built on Allo Protocol
 
 ## Demo Video
 
-// TODO
+[![Allokate Demo](https://img.youtube.com/vi/g1DzFnADLyU/0.jpg)](https://www.youtube.com/watch?v=g1DzFnADLyU)
 
 ## Contract Addresses
 
