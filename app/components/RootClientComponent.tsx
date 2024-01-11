@@ -24,7 +24,12 @@ const { chains, publicClient } = configureChains(
 const connectors = connectorsForWallets([
     {
         groupName: "Supported",
-        wallets: [metaMaskWallet({ chains, projectId: "" })],
+        wallets: [
+            metaMaskWallet({
+                chains,
+                projectId: "9b67aaf01849c0ae0a194c05a7678c57",
+            }),
+        ],
     },
 ]);
 
