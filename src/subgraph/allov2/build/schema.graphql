@@ -1,0 +1,27 @@
+type Allo @entity {
+    id: ID!
+    registry: Bytes!
+    feePercentage: BigInt!
+    baseFee: BigInt!
+    treasury: Bytes!
+    cloneableStrategies: [Bytes!]
+}
+
+type Pool @entity {
+    id: ID!
+    poolId: BigInt!
+    profileId: Bytes!
+    strategyName: String
+    strategyId: String
+    strategy: Bytes
+    token: Bytes
+    tokenMetadata: String
+    amount: BigInt
+    feePaid: BigInt
+    baseFeePaid: BigInt
+    metadataProtocol: BigInt
+    metadataPointer: String
+    managerRoleId: String
+    adminRoleId: String
+    createdAt: BigInt
+}

@@ -17,10 +17,15 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { parseEther } from "viem";
+import { encodeAbiParameters, parseAbiParameters, parseEther } from "viem";
 import { useNetwork, usePublicClient, useWalletClient } from "wagmi";
 import { date, number, object, string } from "yup";
-import { rpc } from "@/src/utils/constants";
+import { ALLO_PROXY, rpc } from "@/src/utils/constants";
+import { TStrategyType } from "@/src/utils/types";
+import {
+    abi as MicroGrantsConditionalAbi,
+    bytecode as MicroGrantsConditionalBytecode,
+} from "@/src/strategies/microGrantsConditional.config";
 
 const createPoolSchema = object({
     name: string().required(),
@@ -38,11 +43,17 @@ const createPoolSchema = object({
                 startDate &&
                 schema.min(startDate, "End date must be after the start date")
         ),
+    requiredToken: string(),
+    requiredTokenBalance: string(),
+    strategyType: string().required("Mode of managing allocators is required"),
 });
 
 export default function CreatePool() {
     const [base64Image, setBase64Image] = useState<string>("");
     const [creatingPool, setCreatingPool] = useState(false);
+    const [strategyTypeSelected, setStrategyTypeSelected] = useState<
+        typeof StrategyType.MicroGrants | "microGrantsConditional"
+    >(StrategyType.MicroGrants as TStrategyType);
     const { chain } = useNetwork();
     const { data: client } = useWalletClient();
     const publicClient = usePublicClient();
@@ -77,10 +88,26 @@ export default function CreatePool() {
             });
 
             let strategyAddress: string = "0x";
+            let deployParams;
 
-            let deployParams = strategy.getDeployParams(
-                StrategyType.MicroGrants
-            );
+            if (strategyTypeSelected == StrategyType.MicroGrants) {
+                deployParams = strategy.getDeployParams(
+                    StrategyType.MicroGrants
+                );
+            } else {
+                const constructorArgs: `0x${string}` = encodeAbiParameters(
+                    parseAbiParameters("address, string"),
+                    [ALLO_PROXY, StrategyType.MicroGrants]
+                );
+
+                const constructorArgsNo0x = constructorArgs.slice(2);
+
+                deployParams = {
+                    abi: MicroGrantsConditionalAbi,
+                    bytecode:
+                        MicroGrantsConditionalBytecode + constructorArgsNo0x,
+                };
+            }
 
             try {
                 toast.loading("Waiting for user", { id: createStrategyToast });
@@ -172,17 +199,50 @@ export default function CreatePool() {
                     new Date(data.endDate).getTime() / 1000
                 );
 
-                const initParams: any = {
-                    useRegistryAnchor: true,
-                    allocationStartTime: BigInt(startDateInSeconds),
-                    allocationEndTime: BigInt(endDateInSeconds),
-                    approvalThreshold: BigInt(data.threshold),
-                    maxRequestedAmount: parseEther(data.grantAmount),
-                };
-
                 let initStrategyData;
 
-                initStrategyData = await strategy.getInitializeData(initParams);
+                if (strategyTypeSelected === StrategyType.MicroGrants) {
+                    const initParams: any = {
+                        useRegistryAnchor: true,
+                        allocationStartTime: BigInt(startDateInSeconds),
+                        allocationEndTime: BigInt(endDateInSeconds),
+                        approvalThreshold: BigInt(data.threshold),
+                        maxRequestedAmount: parseEther(data.grantAmount),
+                    };
+
+                    initStrategyData = await strategy.getInitializeData(
+                        initParams
+                    );
+                } else {
+                    const initParams: any = {
+                        useRegistryAnchor: true,
+                        allocationStartTime: BigInt(startDateInSeconds),
+                        allocationEndTime: BigInt(endDateInSeconds),
+                        approvalThreshold: BigInt(data.threshold),
+                        maxRequestedAmount: parseEther(data.grantAmount),
+                        requiredToken: data.requiredToken,
+                        requiredTokenBalance: parseEther(
+                            data.requiredTokenBalance
+                        ),
+                    };
+
+                    const encoded: `0x${string}` = encodeAbiParameters(
+                        parseAbiParameters(
+                            "bool, uint64, uint64, uint256, uint256, address, uint256"
+                        ),
+                        [
+                            initParams.useRegistryAnchor,
+                            initParams.allocationStartTime,
+                            initParams.allocationEndTime,
+                            initParams.approvalThreshold,
+                            initParams.maxRequestedAmount,
+                            initParams.requiredToken,
+                            initParams.requiredTokenBalance,
+                        ]
+                    );
+
+                    initStrategyData = encoded;
+                }
 
                 let poolCreationData;
 
@@ -258,6 +318,17 @@ export default function CreatePool() {
         setCreatingPool(false);
     }
 
+    const strategyTypes = [
+        {
+            name: "Manual",
+            type: StrategyType.MicroGrants,
+        },
+        {
+            name: "MicroGrantsConditional",
+            type: "microGrantsConditional",
+        },
+    ];
+
     return (
         <div className="flex flex-col space-y-8 items-start w-full">
             <Title className="text-[20px] italic">Create Pool</Title>
@@ -267,9 +338,31 @@ export default function CreatePool() {
             >
                 <div className="flex w-full flex-col space-y-4">
                     <label>Strategy</label>
-                    <div className="border-2 text-color-400 border-color-400 px-4 py-2">
-                        <Text>Manual MicroGrants</Text>
-                    </div>
+                    {/* <Text>Manual MicroGrants</Text> */}
+                    {strategyTypes.length > 0 && (
+                        <select
+                            {...register("strategyType")}
+                            id="strategyType"
+                            name="strategyType"
+                            className="mt-2 bg-transparent block w-full border-2 border-color-400 px-6 py-2.5 text-color-100 sm:text-sm sm:leading-6"
+                            defaultValue={strategyTypes[0].type}
+                            onChange={(e) =>
+                                setStrategyTypeSelected(
+                                    e.target.value as TStrategyType
+                                )
+                            }
+                        >
+                            {strategyTypes.map((strategyType, index) => (
+                                <option
+                                    key={strategyType.type}
+                                    value={strategyType.type}
+                                    selected={index === 0}
+                                >
+                                    {strategyType.name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </div>
 
                 {/* Placeholder */}
@@ -378,6 +471,47 @@ export default function CreatePool() {
                 </div>
 
                 <div></div>
+                {strategyTypeSelected === "microGrantsConditional" ? (
+                    <>
+                        <div className="flex w-full flex-col space-y-4">
+                            <label
+                                htmlFor="requiredTokenAddress"
+                                className="text-[16px]"
+                            >
+                                Required Token Address
+                            </label>
+                            <input
+                                {...register("requiredToken")}
+                                className="px-4 py-2 bg-color-500 border-2 border-color-400 text-color-100"
+                                placeholder="0x73fCc55ab7244708A4F81e45A11e840135969e7B"
+                            />
+                            {errors.requiredTokenAddress && (
+                                <Text className="text-red-500">
+                                    {errors.requiredTokenAddress.message}
+                                </Text>
+                            )}
+                        </div>
+
+                        <div className="flex w-full flex-col space-y-4">
+                            <label
+                                htmlFor="requiredTokenBalance"
+                                className="text-[16px]"
+                            >
+                                Required Token Balance
+                            </label>
+                            <input
+                                {...register("requiredTokenBalance")}
+                                className="px-4 py-2 bg-color-500 border-2 border-color-400 text-color-100"
+                                placeholder="1"
+                            />
+                            {errors.requiredTokenBalance && (
+                                <Text className="text-red-500">
+                                    {errors.requiredTokenBalance.message}
+                                </Text>
+                            )}
+                        </div>
+                    </>
+                ) : null}
 
                 <div className="flex w-full flex-col space-y-4">
                     <label htmlFor="startDate" className="text-[16px]">
