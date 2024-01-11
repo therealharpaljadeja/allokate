@@ -485,9 +485,9 @@ export default function CreatePool() {
                                 className="px-4 py-2 bg-color-500 border-2 border-color-400 text-color-100"
                                 placeholder="0x73fCc55ab7244708A4F81e45A11e840135969e7B"
                             />
-                            {errors.requiredTokenAddress && (
+                            {errors.requiredToken && (
                                 <Text className="text-red-500">
-                                    {errors.requiredTokenAddress.message}
+                                    {errors.requiredToken.message}
                                 </Text>
                             )}
                         </div>
