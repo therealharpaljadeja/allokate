@@ -1,7 +1,17 @@
 import Link from "next/link";
 import Text from "./Text";
 import { EApplicationStatus } from "@/src/utils/types";
-import { statusColorScheme } from "@/src/utils/common";
+
+export const statusColorScheme = {
+    [EApplicationStatus.ACCEPTED]:
+        "text-green-700 bg-green-50 border-2 border-green-600",
+    [EApplicationStatus.PENDING]:
+        "text-color-700 bg-color-100 border-2 border-color-600",
+    [EApplicationStatus.REJECTED]:
+        "text-red-600 bg-red-50 border-2 border-color-500",
+    [EApplicationStatus.PAID]:
+        "text-blue-600 bg-blue-50 border-2 border-color-500",
+};
 
 type ApplicationCardProps = {
     imageSrc: string;
