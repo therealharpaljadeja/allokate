@@ -15,4 +15,6 @@ const CustomInput = forwardRef(
     }
 );
 
+CustomInput.displayName = "CustomInput";
+
 export default CustomInput;
