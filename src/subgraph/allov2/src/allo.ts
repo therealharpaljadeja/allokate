@@ -1,46 +1,19 @@
-import {
-  AdminChanged as AdminChangedEvent,
-  BeaconUpgraded as BeaconUpgradedEvent,
-  Upgraded as UpgradedEvent
-} from "../generated/Allo/Allo"
-import { AdminChanged, BeaconUpgraded, Upgraded } from "../generated/schema"
+import { PoolCreated as PoolCreatedEvent } from "../generated/Allo/Allo";
+import { Pool } from "../generated/schema";
 
-export function handleAdminChanged(event: AdminChangedEvent): void {
-  let entity = new AdminChanged(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.previousAdmin = event.params.previousAdmin
-  entity.newAdmin = event.params.newAdmin
+export function handlePoolCreated(event: PoolCreatedEvent): void {
+    let id = event.params.poolId;
+    let pool = new Pool(id.toString());
+    pool.poolId = event.params.poolId;
+    pool.profileId = event.params.profileId;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+    pool.strategy = event.params.strategy;
+    pool.token = event.params.token;
+    pool.tokenMetadata = null;
+    pool.metadataPointer = event.params.metadata.pointer;
+    pool.metadataProtocol = event.params.metadata.protocol;
 
-  entity.save()
-}
+    pool.createdAt = event.block.timestamp;
 
-export function handleBeaconUpgraded(event: BeaconUpgradedEvent): void {
-  let entity = new BeaconUpgraded(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.beacon = event.params.beacon
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleUpgraded(event: UpgradedEvent): void {
-  let entity = new Upgraded(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.implementation = event.params.implementation
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+    pool.save();
 }

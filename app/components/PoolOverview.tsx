@@ -16,8 +16,8 @@ import {
 import { getPoolStatus } from "@/src/utils/common";
 import Text from "./Text";
 import Link from "next/link";
-import { sliceAddress } from "./Address";
-import { formatEther } from "viem";
+import Address, { sliceAddress } from "./Address";
+import { decodeAbiParameters, encodeAbiParameters, formatEther } from "viem";
 import Title from "./Title";
 import ApplicationGrid from "./ApplicationGrid";
 import Button from "./Button";
@@ -29,6 +29,7 @@ import { MicroGrantsStrategy } from "@allo-team/allo-v2-sdk";
 import { usePublicClient, useWalletClient } from "wagmi";
 import toast from "react-hot-toast";
 import { chainId, rpc } from "@/src/utils/constants";
+import { abi as MicroGrantsConditionalAbi } from "@/src/strategies/microGrantsConditional.config";
 
 const statusColorScheme = {
     [EPoolStatus.ACTIVE]:
@@ -60,6 +61,16 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
     const [poolStatus, setPoolStatus] = useState<
         EPoolStatus | "Unavailable" | undefined
     >(undefined);
+
+    const [requiredToken, setRequiredToken] = useState<
+        `0x${string}` | undefined
+    >();
+    const [requiredTokenBalance, setRequiredTokenBalance] = useState<
+        string | undefined
+    >();
+
+    const [isEligible, setIsEligible] = useState<boolean | undefined>();
+
     const { data: client } = useWalletClient();
     const publicClient = usePublicClient();
 
@@ -93,6 +104,53 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
             (async () => {
                 let recipients = await getMicroGrantRecipientsByPoolId(pool.id);
                 setRecipients(recipients);
+                try {
+                    if (pool.strategy) {
+                        const requiredToken = (await publicClient.readContract({
+                            address: pool.strategy,
+                            abi: MicroGrantsConditionalAbi,
+                            functionName: "requiredToken",
+                        })) as `0x${string}`;
+
+                        const requiredTokenBalance = formatEther(
+                            (await publicClient.readContract({
+                                address: pool.strategy,
+                                abi: MicroGrantsConditionalAbi,
+                                functionName: "requiredTokenBalance",
+                            })) as bigint
+                        );
+
+                        setRequiredToken(requiredToken);
+                        setRequiredTokenBalance(requiredTokenBalance);
+
+                        if (!isAllocator && !isPoolManager && client) {
+                            let encodedSender = encodeAbiParameters(
+                                [{ name: "sender", type: "address" }],
+                                [client.account.address]
+                            );
+                            let { data } = await publicClient.call({
+                                account: client.account,
+                                to: requiredToken,
+                                data: `0x70a08231${encodedSender.slice(2)}`,
+                            });
+                            if (data) {
+                                const balance = decodeAbiParameters(
+                                    [{ name: "balance", type: "uint256" }],
+                                    data
+                                )[0];
+
+                                setIsEligible(
+                                    +formatEther(balance) >=
+                                        +requiredTokenBalance
+                                );
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log(
+                        "This might not be a MicroGrants conditional pool"
+                    );
+                }
             })();
 
             if (pool.microGrant) {
@@ -106,7 +164,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                 setPoolStatus("Unavailable");
             }
         }
-    }, [pool]);
+    }, [pool, client]);
 
     useEffect(() => {
         if (pool && poolStatus === EPoolStatus.ENDED) {
@@ -260,6 +318,32 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
         items = [...items, ...microGrant];
     }
 
+    if (requiredToken && requiredTokenBalance) {
+        let microGrantConditional = [
+            {
+                label: "Required Token",
+                value: (
+                    <Link
+                        href={`https://sepolia.arbiscan.io/token/${requiredToken}`}
+                        target="_blank"
+                        className="underline"
+                    >
+                        <Text>{`${requiredToken.slice(
+                            0,
+                            5
+                        )}...${requiredToken.slice(-5)}`}</Text>
+                    </Link>
+                ),
+            },
+            {
+                label: "Required Token Balance",
+                value: requiredTokenBalance,
+            },
+        ];
+
+        items = [...items, ...microGrantConditional];
+    }
+
     return (
         <div className="flex w-full flex-col space-y-8">
             <img
@@ -304,12 +388,16 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                 <div className="flex flex-col items-stretch space-y-4">
                     {isAllocator || isPoolManager ? null : poolStatus ===
                       EPoolStatus.ACTIVE ? (
-                        <Link
-                            className="w-full"
-                            href={`/pool/${pool.id}/apply`}
-                        >
-                            <Button className="w-full">Apply</Button>
-                        </Link>
+                        isEligible === undefined || isEligible ? (
+                            <Link
+                                className="w-full"
+                                href={`/pool/${pool.id}/apply`}
+                            >
+                                <Button className="w-full">Apply</Button>
+                            </Link>
+                        ) : (
+                            <Button disabled={true}>Not Eligible</Button>
+                        )
                     ) : poolStatus === EPoolStatus.UPCOMING ? (
                         <Button disabled={true}>Coming Soon</Button>
                     ) : (
@@ -318,6 +406,7 @@ export default function PoolOverview({ poolId }: { poolId: string }) {
                     {isPoolManager && poolAmount !== 0 ? (
                         <Button onClick={withdraw}>Withdraw Funds</Button>
                     ) : null}
+
                     <SideTable items={items} title="Pool Details" />
                 </div>
             </div>

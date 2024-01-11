@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+/src/subgraph/allov2/node_modules
 
 # testing
 /coverage
