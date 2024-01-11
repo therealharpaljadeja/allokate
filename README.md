@@ -2,6 +2,8 @@
 
 Grant distribution tool built on Allo Protocol
 
+## [Try](https://allokate.vercel.app)
+
 ## Demo Video
 
 [![Allokate Demo](https://img.youtube.com/vi/g1DzFnADLyU/0.jpg)](https://www.youtube.com/watch?v=g1DzFnADLyU)
